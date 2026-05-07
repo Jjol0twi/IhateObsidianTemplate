@@ -1,0 +1,126 @@
+.ihate-template-title-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ihate-template-title-modal input {
+  width: 100%;
+}
+
+.ihate-template-title-modal .ihate-template-title-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ihate-template-string-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  min-height: 32px;
+}
+
+.ihate-template-string-list-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  line-height: 1.4;
+}
+
+.ihate-template-status-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ihate-template-status-section {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  padding: 0 12px 12px;
+  min-height: 140px;
+  overflow: hidden;
+}
+
+.ihate-template-status-section-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 700px) {
+  .ihate-template-status-board {
+    grid-template-columns: 1fr;
+  }
+
+  .ihate-template-status-section-wide {
+    grid-column: auto;
+  }
+}
+
+.ihate-template-status-section h3 {
+  margin: 0 -12px 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-hover);
+  font-size: var(--font-ui-medium);
+  font-weight: 700;
+}
+
+.ihate-template-status-section h3::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: var(--text-accent);
+  vertical-align: 1px;
+}
+
+.ihate-template-status-draft h3::before {
+  background: var(--color-blue);
+}
+
+.ihate-template-status-review h3::before {
+  background: var(--color-yellow);
+}
+
+.ihate-template-status-done h3::before {
+  background: var(--color-green);
+}
+
+.ihate-template-status-updating h3::before {
+  background: var(--color-purple);
+}
+
+.ihate-template-status-outdated h3::before {
+  background: var(--color-red);
+}
+
+.ihate-template-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ihate-template-status-item {
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+  justify-content: flex-start;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: none;
+  text-align: left;
+}
+
+.ihate-template-status-empty {
+  color: var(--text-muted);
+  padding: 8px 0;
+}

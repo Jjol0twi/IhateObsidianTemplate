@@ -1,0 +1,11 @@
+{
+  "id": "ihate-template",
+  "name": "IhateTemplate",
+  "version": "0.1.0",
+  "minAppVersion": "1.8.0",
+  "description": "Create and insert notes from simple explicit templates.",
+  "author": "IhateTemplate contributors",
+  "authorUrl": "",
+  "fundingUrl": "",
+  "isDesktopOnly": false
+}

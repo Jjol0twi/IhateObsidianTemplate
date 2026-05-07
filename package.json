@@ -1,0 +1,26 @@
+{
+  "name": "ihate-template",
+  "version": "0.1.0",
+  "description": "A simple Obsidian template plugin with explicit placeholder syntax.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs development --watch",
+    "build": "node esbuild.config.mjs release",
+    "release:check": "node scripts/check-release.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "template"
+  ],
+  "author": "IhateTemplate contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "latest",
+    "builtin-modules": "latest",
+    "esbuild": "latest",
+    "obsidian": "latest",
+    "typescript": "latest"
+  }
+}

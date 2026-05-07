@@ -327,3 +327,4 @@ MIT
 - Frontmatter `updated: "%{{nowdatetime}}"` updates on save for created/applied notes.
 - Template files are not rewritten by the tracker.
 - Release build hides development-only notices, logs, and commands.
+# IhateObsidianTemplate

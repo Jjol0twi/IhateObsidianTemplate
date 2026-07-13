@@ -5,7 +5,8 @@ import {
   TFolder,
   normalizePath
 } from "obsidian";
-import { IhateTemplateSettings } from "./settings";
+import type { IhateTemplateSettings } from "./settings";
+import { normalizeTagValue } from "./tag-values";
 
 export function getFolderFromFileMenuTarget(target: unknown): string | undefined {
   if (target instanceof TFolder) {
@@ -91,6 +92,22 @@ export async function createMarkdownFile(
 export function getActiveMarkdownTitle(app: App): string {
   const view = app.workspace.getActiveViewOfType(MarkdownView);
   return view?.file?.basename ?? "Untitled";
+}
+
+export function getDefaultTagsForFolder(folderPath: string): string[] {
+  const normalized = normalizeFolderPath(folderPath);
+  if (!normalized) {
+    return [];
+  }
+
+  const parts = normalized.split("/").filter(Boolean);
+  const folderName = parts[parts.length - 1];
+  if (!folderName) {
+    return [];
+  }
+
+  const tagName = normalizeTagValue(folderName);
+  return tagName ? [tagName] : [];
 }
 
 function sanitizeFileName(title: string): string {

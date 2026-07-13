@@ -1,11 +1,19 @@
 import { App } from "obsidian";
-import { IhateTemplateSettings } from "./settings";
-import { RenderedTemplate, renderTemplate } from "./template-engine";
+import type { IhateTemplateSettings } from "./settings";
+import { renderTemplate } from "./template-engine";
+import type { RenderedTemplate } from "./template-engine";
 import {
   parseCustomSelectPrompts,
   pickOption
 } from "./status";
 import { resolvePromptPlaceholders } from "./prompt-placeholders";
+import { resolveTemplateRulePrompts } from "./template-rules";
+import type { TemplateRule } from "./template-rules";
+import { PromptCancelledError } from "./prompt-cancellation";
+import {
+  formatYamlScalarForQuote,
+  replaceLiteralOccurrences
+} from "./placeholder-values";
 
 const DEFAULT_STATUS = "#status/draft";
 
@@ -13,54 +21,49 @@ export async function renderTemplateWithPrompts(
   app: App,
   templateContent: string,
   title: string,
-  settings: IhateTemplateSettings
+  settings: IhateTemplateSettings,
+  tags: string[] = [],
+  rule: TemplateRule | null = null
 ): Promise<RenderedTemplate> {
-  let resolvedTemplate = await resolvePromptPlaceholders(
+  let resolvedTemplate = await resolveTemplateRulePrompts(
     app,
     templateContent,
+    rule,
+    settings.datetimeFormat
+  );
+  resolvedTemplate = await resolvePromptPlaceholders(
+    app,
+    resolvedTemplate,
     settings.datetimeFormat
   );
 
+  const handledPrompts = new Set<string>();
   for (const prompt of parseCustomSelectPrompts(resolvedTemplate)) {
+    if (handledPrompts.has(prompt.raw)) {
+      continue;
+    }
+    handledPrompts.add(prompt.raw);
+
     const selected = await pickOption(
       app,
       prompt.options,
       `Choose ${prompt.field}`
     );
     if (!selected) {
-      throw new Error(`${prompt.field} selection was cancelled.`);
+      throw new PromptCancelledError();
     }
-    resolvedTemplate = resolvedTemplate
-      .split(prompt.raw)
-      .join(formatSelectValueForTemplate(resolvedTemplate, prompt.raw, selected.value));
+    resolvedTemplate = replaceLiteralOccurrences(
+      resolvedTemplate,
+      prompt.raw,
+      (quote) => formatYamlScalarForQuote(selected.value, quote)
+    );
   }
 
   return renderTemplate(resolvedTemplate, {
     title,
     status: DEFAULT_STATUS,
-    datetimeFormat: settings.datetimeFormat
+    tags,
+    datetimeFormat: settings.datetimeFormat,
+    protectedFieldNames: rule?.protectedProperties
   });
-}
-
-function formatSelectValueForTemplate(
-  template: string,
-  rawPlaceholder: string,
-  value: string
-): string {
-  if (isQuotedPlaceholder(template, rawPlaceholder)) {
-    return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-  }
-
-  return value;
-}
-
-function isQuotedPlaceholder(template: string, rawPlaceholder: string): boolean {
-  const index = template.indexOf(rawPlaceholder);
-  if (index === -1) {
-    return false;
-  }
-
-  const before = template[index - 1];
-  const after = template[index + rawPlaceholder.length];
-  return (before === '"' && after === '"') || (before === "'" && after === "'");
 }

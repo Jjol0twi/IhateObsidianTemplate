@@ -1,6 +1,12 @@
 import { App, Modal, Setting, TFile } from "obsidian";
-import { pickOption, StatusOption } from "./status";
+import { pickOption } from "./status";
+import type { StatusOption } from "./status";
 import { formatDate, getDateFormatFromDatetimeFormat } from "./template-engine";
+import {
+  formatYamlScalarForQuote,
+  replaceLiteralOccurrences
+} from "./placeholder-values";
+import { PromptCancelledError } from "./prompt-cancellation";
 
 interface FieldPrompt {
   raw: string;
@@ -28,9 +34,11 @@ export async function resolvePromptPlaceholders(
 
   for (const prompt of parseFieldPrompts(template)) {
     const value = await resolveFieldPrompt(app, prompt, datetimeFormat);
-    resolved = resolved
-      .split(prompt.raw)
-      .join(formatPromptValueForTemplate(resolved, prompt.raw, value));
+    resolved = replaceLiteralOccurrences(
+      resolved,
+      prompt.raw,
+      (quote) => formatYamlScalarForQuote(value, quote)
+    );
   }
 
   for (const prompt of parseMultiPrompts(template)) {
@@ -39,7 +47,15 @@ export async function resolvePromptPlaceholders(
       prompt.options,
       `Choose ${prompt.field}`
     );
-    resolved = resolved.split(prompt.raw).join(formatYamlList(values));
+    if (values === null) {
+      throw new PromptCancelledError();
+    }
+    resolved = replaceLiteralOccurrences(resolved, prompt.raw, (quote) => {
+      if (quote !== null) {
+        throw new Error(`${prompt.raw} must not be quoted when it renders a list.`);
+      }
+      return formatInlineYamlList(values);
+    });
   }
 
   return resolved;
@@ -50,6 +66,9 @@ async function resolveStringListFields(app: App, template: string): Promise<stri
 
   for (const field of findEmptyStringListFields(template)) {
     const values = await requestStringList(app, field);
+    if (values === null) {
+      throw new PromptCancelledError();
+    }
     resolved = resolved.replace(
       new RegExp(`^${escapeRegex(field)}:\\s*$`, "m"),
       formatYamlBlockList(field, values)
@@ -80,9 +99,14 @@ function findEmptyStringListFields(template: string): string[] {
 
 function parseFieldPrompts(template: string): FieldPrompt[] {
   const prompts: FieldPrompt[] = [];
+  const seen = new Set<string>();
   let match: RegExpExecArray | null;
 
   while ((match = FIELD_PROMPT_REGEX.exec(template)) !== null) {
+    if (seen.has(match[0])) {
+      continue;
+    }
+    seen.add(match[0]);
     prompts.push({
       raw: match[0],
       kind: match[1] as FieldPrompt["kind"],
@@ -95,9 +119,14 @@ function parseFieldPrompts(template: string): FieldPrompt[] {
 
 function parseMultiPrompts(template: string): MultiPrompt[] {
   const prompts: MultiPrompt[] = [];
+  const seen = new Set<string>();
   let match: RegExpExecArray | null;
 
   while ((match = MULTI_PROMPT_REGEX.exec(template)) !== null) {
+    if (seen.has(match[0])) {
+      continue;
+    }
+    seen.add(match[0]);
     const options = match[2]
       .split("|")
       .map((option) => option.trim())
@@ -128,15 +157,18 @@ async function resolveFieldPrompt(
   }
 
   const value = await requestDateValue(app, prompt.field);
+  if (value === null) {
+    throw new PromptCancelledError();
+  }
 
-  return formatDateInput(value ?? "", datetimeFormat);
+  return formatDateInput(value, datetimeFormat);
 }
 
-async function pickMultipleOptions(
+export async function pickMultipleOptions(
   app: App,
   options: StatusOption[],
   placeholder: string
-): Promise<string[]> {
+): Promise<string[] | null> {
   const selectedValues: string[] = [];
   const remaining = [...options];
 
@@ -153,7 +185,10 @@ async function pickMultipleOptions(
       placeholder
     );
 
-    if (!selected || selected.value === "__IHATE_TEMPLATE_DONE__") {
+    if (!selected) {
+      return null;
+    }
+    if (selected.value === "__IHATE_TEMPLATE_DONE__") {
       break;
     }
 
@@ -167,7 +202,7 @@ async function pickMultipleOptions(
   return selectedValues;
 }
 
-function formatYamlList(values: string[]): string {
+export function formatInlineYamlList(values: string[]): string {
   if (values.length === 0) {
     return "[]";
   }
@@ -226,54 +261,40 @@ function parseOption(option: string): StatusOption {
   };
 }
 
-function formatPromptValueForTemplate(
-  template: string,
-  rawPlaceholder: string,
-  value: string
-): string {
-  if (isQuotedPlaceholder(template, rawPlaceholder)) {
-    return escapeForQuotedYamlScalar(value);
-  }
-
-  return value;
-}
-
-function isQuotedPlaceholder(template: string, rawPlaceholder: string): boolean {
-  const index = template.indexOf(rawPlaceholder);
-  if (index === -1) {
-    return false;
-  }
-
-  const before = template[index - 1];
-  const after = template[index + rawPlaceholder.length];
-  return (before === '"' && after === '"') || (before === "'" && after === "'");
-}
-
-function escapeForQuotedYamlScalar(value: string): string {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\r?\n/g, "\\n");
-}
-
-function formatDateInput(value: string, datetimeFormat: string): string {
+export function formatDateInput(value: string, datetimeFormat: string): string {
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) {
     return value;
   }
 
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return value;
+  }
   return formatDate(date, getDateFormatFromDatetimeFormat(datetimeFormat));
 }
 
-async function requestDateValue(app: App, field: string): Promise<string | null> {
+export async function requestDateValue(
+  app: App,
+  field: string
+): Promise<string | null> {
   return new Promise((resolve) => {
     const modal = new DatePromptModal(app, field, resolve);
     modal.open();
   });
 }
 
-async function requestStringList(app: App, field: string): Promise<string[]> {
+export async function requestStringList(
+  app: App,
+  field: string
+): Promise<string[] | null> {
   return new Promise((resolve) => {
     const modal = new StringListPromptModal(app, field, resolve);
     modal.open();
@@ -282,7 +303,7 @@ async function requestStringList(app: App, field: string): Promise<string[]> {
 
 class StringListPromptModal extends Modal {
   private readonly field: string;
-  private readonly resolveValues: (values: string[]) => void;
+  private readonly resolveValues: (values: string[] | null) => void;
   private readonly values: string[] = [];
   private readonly valueSet = new Set<string>();
   private inputEl: HTMLInputElement | null = null;
@@ -290,7 +311,11 @@ class StringListPromptModal extends Modal {
   private resolved = false;
   private compositionActive = false;
 
-  constructor(app: App, field: string, resolveValues: (values: string[]) => void) {
+  constructor(
+    app: App,
+    field: string,
+    resolveValues: (values: string[] | null) => void
+  ) {
     super(app);
     this.field = field;
     this.resolveValues = resolveValues;
@@ -344,7 +369,7 @@ class StringListPromptModal extends Modal {
   onClose(): void {
     if (!this.resolved) {
       this.resolved = true;
-      this.resolveValues([]);
+      this.resolveValues(null);
     }
   }
 

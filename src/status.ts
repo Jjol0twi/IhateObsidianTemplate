@@ -1,4 +1,4 @@
-import { App, SuggestModal, TFile } from "obsidian";
+import { App, Notice, SuggestModal, TFile } from "obsidian";
 
 export interface StatusOption {
   label: string;
@@ -61,10 +61,15 @@ export async function pickOption(
 
 export function parseCustomSelectPrompts(template: string): CustomSelectPrompt[] {
   const prompts: CustomSelectPrompt[] = [];
+  const seen = new Set<string>();
   const regex = /%\{\{select:([A-Za-z0-9_-]+)\|([^}]+)}}/g;
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(template)) !== null) {
+    if (seen.has(match[0])) {
+      continue;
+    }
+    seen.add(match[0]);
     const options = match[2]
       .split("|")
       .map((option) => option.trim())
@@ -97,9 +102,13 @@ export async function changeFileStatus(app: App, filePath: string): Promise<void
     return;
   }
 
-  await app.fileManager.processFrontMatter(file, (frontmatter) => {
-    frontmatter.status = selected.value;
-  });
+  try {
+    await app.fileManager.processFrontMatter(file, (frontmatter) => {
+      frontmatter.status = selected.value;
+    });
+  } catch {
+    new Notice("IhateTemplate could not update the status.");
+  }
 }
 
 class StatusPickerModal extends SuggestModal<StatusOption> {

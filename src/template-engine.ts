@@ -1,9 +1,14 @@
 import { DEFAULT_DATETIME_FORMAT } from "./constants";
+import {
+  formatYamlScalarForQuote,
+  getPlaceholderQuote
+} from "./placeholder-values";
 
 export type TemplateToken =
   | "title"
   | "page"
   | "status"
+  | "tags"
   | "datetime"
   | "date"
   | "time"
@@ -17,6 +22,8 @@ export interface RenderTemplateOptions {
   title: string;
   datetimeFormat: string;
   status?: string;
+  tags?: string[];
+  protectedFieldNames?: string[];
   now?: Date;
 }
 
@@ -31,6 +38,7 @@ const SUPPORTED_TOKENS = new Set<TemplateToken>([
   "title",
   "page",
   "status",
+  "tags",
   "datetime",
   "date",
   "time",
@@ -54,48 +62,44 @@ export function renderTemplate(
   const nowFields = extractNowFields(template);
   const pageTokenUsed = /%\{\{\s*page\s*}}/.test(template);
 
-  const content = template.replace(/%\{\{([^}]+)}}/g, (match, rawToken) => {
+  const content = template.replace(/%\{\{([^}]+)}}/g, (
+    match,
+    rawToken,
+    offset: number
+  ) => {
     const token = String(rawToken).trim() as TemplateToken;
     if (!SUPPORTED_TOKENS.has(token)) {
       return match;
     }
 
-    return formatTokenValueForTemplate(
-      template,
-      match,
-      renderToken(token, options.title, options.status ?? "", datetimeFormat, now)
+    const value = renderToken(
+      token,
+      options.title,
+      options.status ?? "",
+      datetimeFormat,
+      now,
+      options.tags ?? []
     );
+    const quote = getPlaceholderQuote(template, offset, match.length);
+    if (token === "tags") {
+      if (quote !== null) {
+        throw new Error("%{{tags}} must not be quoted because it renders a list.");
+      }
+      return value;
+    }
+
+    return formatYamlScalarForQuote(value, quote);
   });
 
   return {
     content,
     nowFields,
-    protectedFields: extractFrontmatterValues(content, ["created"]),
+    protectedFields: extractFrontmatterValues(
+      content,
+      [...new Set(["created", ...(options.protectedFieldNames ?? [])])]
+    ),
     pageTokenUsed
   };
-}
-
-function formatTokenValueForTemplate(
-  template: string,
-  rawPlaceholder: string,
-  value: string
-): string {
-  if (!isQuotedPlaceholder(template, rawPlaceholder)) {
-    return value;
-  }
-
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
-function isQuotedPlaceholder(template: string, rawPlaceholder: string): boolean {
-  const index = template.indexOf(rawPlaceholder);
-  if (index === -1) {
-    return false;
-  }
-
-  const before = template[index - 1];
-  const after = template[index + rawPlaceholder.length];
-  return (before === '"' && after === '"') || (before === "'" && after === "'");
 }
 
 export function renderNowToken(
@@ -120,7 +124,8 @@ function renderToken(
   title: string,
   status: string,
   datetimeFormat: string,
-  now: Date
+  now: Date,
+  tags: string[] = []
 ): string {
   const dateFormat = getDateFormatFromDatetimeFormat(datetimeFormat);
 
@@ -130,6 +135,8 @@ function renderToken(
       return title;
     case "status":
       return status;
+    case "tags":
+      return formatYamlList(tags);
     case "date":
     case "nowdate":
       return formatDate(now, dateFormat);
@@ -140,6 +147,17 @@ function renderToken(
     case "nowdatetime":
       return formatDate(now, datetimeFormat);
   }
+}
+
+export function formatYamlList(values: string[]): string {
+  if (values.length === 0) {
+    return "[]";
+  }
+
+  return [
+    "",
+    ...values.map((value) => `  - ${JSON.stringify(value)}`)
+  ].join("\n");
 }
 
 function extractNowFields(template: string): Record<string, NowTemplateToken> {
@@ -159,7 +177,9 @@ function extractNowFields(template: string): Record<string, NowTemplateToken> {
 
     const field = match[1].trim();
     const value = match[2];
-    const tokenMatch = value.match(/%\{\{(nowdatetime|nowdate|nowtime)}}/);
+    const tokenMatch = value.match(
+      /%\{\{\s*(nowdatetime|nowdate|nowtime)\s*}}/
+    );
     if (!tokenMatch) {
       continue;
     }
@@ -204,11 +224,16 @@ function extractFrontmatterValues(
 }
 
 function unquoteYamlScalar(value: string): string {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
+  if (value.startsWith('"') && value.endsWith('"')) {
+    try {
+      return JSON.parse(value) as string;
+    } catch {
+      return value.slice(1, -1);
+    }
+  }
+
+  if (value.startsWith("'") && value.endsWith("'")) {
+    return value.slice(1, -1).replace(/''/g, "'");
   }
 
   return value;
@@ -232,13 +257,68 @@ export function formatDate(date: Date, format: string): string {
 
 export function getDateFormatFromDatetimeFormat(format: string): string {
   const normalizedFormat = format || DEFAULT_DATETIME_FORMAT;
-  const dayTokenIndex = normalizedFormat.indexOf("DD");
+  const dateTokens = ["YYYY", "MM", "DD"] as const;
+  const positions = dateTokens.map((token) => {
+    const index = normalizedFormat.indexOf(token);
+    return { token, index };
+  });
 
-  if (dayTokenIndex === -1) {
+  if (positions.some(({ index }) => index === -1)) {
     return "YYYY.MM.DD";
   }
 
-  return normalizedFormat.slice(0, dayTokenIndex + "DD".length);
+  const start = Math.min(...positions.map(({ index }) => index));
+  const end = Math.max(
+    ...positions.map(({ token, index }) => index + token.length)
+  );
+  const dateFormat = normalizedFormat.slice(start, end);
+
+  if (/HH|mm|ss/.test(dateFormat)) {
+    return "YYYY.MM.DD";
+  }
+
+  return dateFormat;
+}
+
+export function isValidDateForFormat(value: string, format: string): boolean {
+  const tokens: string[] = [];
+  const tokenPattern = /YYYY|MM|DD/g;
+  let cursor = 0;
+  let pattern = "^";
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenPattern.exec(format)) !== null) {
+    pattern += escapeRegex(format.slice(cursor, match.index));
+    pattern += match[0] === "YYYY" ? "(\\d{4})" : "(\\d{2})";
+    tokens.push(match[0]);
+    cursor = match.index + match[0].length;
+  }
+
+  pattern += `${escapeRegex(format.slice(cursor))}$`;
+  const valueMatch = new RegExp(pattern).exec(value);
+  if (!valueMatch) {
+    return false;
+  }
+
+  const parts = new Map<string, number>();
+  tokens.forEach((token, index) => {
+    parts.set(token, Number(valueMatch[index + 1]));
+  });
+  const year = parts.get("YYYY");
+  const month = parts.get("MM");
+  const day = parts.get("DD");
+  if (year === undefined || month === undefined || day === undefined) {
+    return false;
+  }
+
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function pad(value: number): string {

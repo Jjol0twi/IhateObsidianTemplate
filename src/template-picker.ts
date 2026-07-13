@@ -1,7 +1,8 @@
 import { App, Notice, SuggestModal, TFile, TFolder, normalizePath } from "obsidian";
 
 export interface TemplateChoice {
-  file: TFile;
+  file?: TFile;
+  path: string;
   label: string;
 }
 
@@ -9,7 +10,7 @@ export async function pickTemplate(
   app: App,
   templateFolder: string
 ): Promise<TemplateChoice | null> {
-  const choices = getTemplateChoices(app, templateFolder);
+  const choices = await getTemplateChoices(app, templateFolder);
   if (choices.length === 0) {
     new Notice(`No markdown templates found in ${templateFolder}.`);
     return null;
@@ -24,22 +25,67 @@ export async function pickTemplate(
 export function getTemplateChoices(
   app: App,
   templateFolder: string
-): TemplateChoice[] {
+): Promise<TemplateChoice[]> {
   const normalizedFolder = normalizePath(templateFolder);
   const folder = app.vault.getAbstractFileByPath(normalizedFolder);
 
-  if (!(folder instanceof TFolder)) {
+  if (folder instanceof TFolder) {
+    const indexedChoices = folder.children
+      .filter((child): child is TFile => child instanceof TFile)
+      .filter((file) => file.extension === "md")
+      .sort((a, b) => a.basename.localeCompare(b.basename))
+      .map((file) => ({
+        file,
+        path: file.path,
+        label: file.basename
+      }));
+
+    if (indexedChoices.length > 0) {
+      return Promise.resolve(indexedChoices);
+    }
+  }
+
+  return getAdapterTemplateChoices(app, normalizedFolder);
+}
+
+export async function readTemplateContent(
+  app: App,
+  template: TemplateChoice
+): Promise<string> {
+  if (template.file) {
+    return app.vault.read(template.file);
+  }
+
+  return app.vault.adapter.read(template.path);
+}
+
+async function getAdapterTemplateChoices(
+  app: App,
+  templateFolder: string
+): Promise<TemplateChoice[]> {
+  if (!(await app.vault.adapter.exists(templateFolder))) {
     return [];
   }
 
-  return folder.children
-    .filter((child): child is TFile => child instanceof TFile)
-    .filter((file) => file.extension === "md")
-    .sort((a, b) => a.basename.localeCompare(b.basename))
-    .map((file) => ({
-      file,
-      label: file.basename
+  const listed = await app.vault.adapter.list(templateFolder);
+  return listed.files
+    .filter((path) => path.toLowerCase().endsWith(".md"))
+    .filter((path) => getParentPath(path) === templateFolder)
+    .sort((a, b) => getBaseName(a).localeCompare(getBaseName(b)))
+    .map((path) => ({
+      path,
+      label: getBaseName(path)
     }));
+}
+
+function getParentPath(path: string): string {
+  const index = path.lastIndexOf("/");
+  return index === -1 ? "" : path.slice(0, index);
+}
+
+function getBaseName(path: string): string {
+  const fileName = path.slice(path.lastIndexOf("/") + 1);
+  return fileName.endsWith(".md") ? fileName.slice(0, -3) : fileName;
 }
 
 class TemplatePickerModal extends SuggestModal<TemplateChoice> {
@@ -68,7 +114,7 @@ class TemplatePickerModal extends SuggestModal<TemplateChoice> {
 
   renderSuggestion(choice: TemplateChoice, el: HTMLElement): void {
     el.createEl("div", { text: choice.label });
-    el.createEl("small", { text: choice.file.path });
+    el.createEl("small", { text: choice.path });
   }
 
   onChooseSuggestion(choice: TemplateChoice): void {

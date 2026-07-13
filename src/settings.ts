@@ -1,5 +1,5 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
-import IhateTemplatePlugin from "./main";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import type IhateTemplatePlugin from "./main";
 import { DEFAULT_DATETIME_FORMAT, DEFAULT_TEMPLATE_FOLDER } from "./constants";
 
 export type NewNoteLocation = "current-folder" | "vault-root";
@@ -31,16 +31,47 @@ export class IhateTemplateSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Template folder")
       .setDesc("Vault folder containing markdown template files.")
-      .addText((text) =>
+      .addText((text) => {
         text
           .setPlaceholder(DEFAULT_TEMPLATE_FOLDER)
-          .setValue(this.plugin.settings.templateFolder)
-          .onChange(async (value) => {
-            this.plugin.settings.templateFolder =
-              value.trim() || DEFAULT_TEMPLATE_FOLDER;
-            await this.plugin.saveSettings();
-          })
-      );
+          .setValue(this.plugin.settings.templateFolder);
+
+        let applying = false;
+        const applyFolder = async (): Promise<void> => {
+          if (applying) {
+            return;
+          }
+
+          const nextFolder = text.getValue().trim() || DEFAULT_TEMPLATE_FOLDER;
+          if (nextFolder === this.plugin.settings.templateFolder) {
+            text.setValue(nextFolder);
+            return;
+          }
+
+          applying = true;
+          text.setDisabled(true);
+          try {
+            await this.plugin.changeTemplateFolder(nextFolder);
+            text.setValue(this.plugin.settings.templateFolder);
+          } catch {
+            text.setValue(this.plugin.settings.templateFolder);
+            new Notice("IhateTemplate could not move the template folder.");
+          } finally {
+            text.setDisabled(false);
+            applying = false;
+          }
+        };
+
+        text.inputEl.addEventListener("change", () => {
+          void applyFolder();
+        });
+        text.inputEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            text.inputEl.blur();
+          }
+        });
+      });
 
     new Setting(containerEl)
       .setName("New note location")

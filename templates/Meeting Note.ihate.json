@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "titlePrefix": "date",
+  "requiredProperties": [
+    "meeting date",
+    "attendees",
+    "tags",
+    "created",
+    "updated"
+  ],
+  "protectedProperties": ["created"],
+  "dateProperties": ["meeting date"],
+  "prompts": [
+    {
+      "field": "attendees",
+      "label": "attendees",
+      "type": "string-list"
+    }
+  ]
+}

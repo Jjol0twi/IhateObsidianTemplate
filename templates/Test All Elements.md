@@ -1,12 +1,12 @@
 ---
 status: "%{{status}}"
-priority: "%{{select:priority|낮음=low|보통=medium|높음=high}}"
-tags: ["test", "template", "ihate-template", "obsidian"]
+priority: "%{{field:priority}}"
+tags: %{{tags}}
 created: "%{{datetime}}"
 updated: "%{{nowdatetime}}"
 date: "%{{date}}"
 time: "%{{time}}"
-due: "%{{datepick:due}}"
+due: "%{{field:due}}"
 related: []
 source: []
 ---
@@ -43,8 +43,9 @@ These are intentionally left as examples, not active prompts:
 
 ## Checklist
 
-- [ ] Verify status picker
-- [ ] Verify custom select
-- [ ] Verify multi select
+- [ ] Verify default draft status
+- [ ] Verify priority select
+- [ ] Verify due date picker
+- [ ] Verify folder-based tags
 - [ ] Verify created protection
 - [ ] Verify updated refresh on save

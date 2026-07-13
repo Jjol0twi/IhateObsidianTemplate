@@ -4,6 +4,7 @@
     "inlineSources": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
     "target": "ES2018",
     "allowSyntheticDefaultImports": true,
     "strict": true,

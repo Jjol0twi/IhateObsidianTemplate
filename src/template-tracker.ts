@@ -1,6 +1,7 @@
 import { App, TFile } from "obsidian";
-import { IhateTemplateSettings } from "./settings";
+import type { IhateTemplateSettings } from "./settings";
 import { NowTemplateToken, renderNowToken } from "./template-engine";
+import type { AppliedTemplateRule } from "./template-rules";
 
 export interface NowFieldRecord {
   fields: Record<string, NowTemplateToken>;
@@ -18,12 +19,14 @@ export interface IhateTemplateData {
   nowFields: Record<string, NowFieldRecord>;
   pageTitles: Record<string, PageTitleRecord>;
   protectedFields: Record<string, ProtectedFieldRecord>;
+  appliedRules: Record<string, AppliedTemplateRule>;
 }
 
 export const DEFAULT_DATA: IhateTemplateData = {
   nowFields: {},
   pageTitles: {},
-  protectedFields: {}
+  protectedFields: {},
+  appliedRules: {}
 };
 
 export interface TemplateTrackerHandle {
@@ -31,8 +34,10 @@ export interface TemplateTrackerHandle {
     path: string,
     fields: Record<string, NowTemplateToken>,
     pageTitle?: string,
-    protectedFields?: Record<string, string>
+    protectedFields?: Record<string, string>,
+    appliedRule?: AppliedTemplateRule
   ): Promise<void>;
+  getAppliedRule(path: string): AppliedTemplateRule | undefined;
 }
 
 export class TemplateTracker implements TemplateTrackerHandle {
@@ -58,21 +63,38 @@ export class TemplateTracker implements TemplateTrackerHandle {
     path: string,
     fields: Record<string, NowTemplateToken>,
     pageTitle?: string,
-    protectedFields?: Record<string, string>
+    protectedFields?: Record<string, string>,
+    appliedRule?: AppliedTemplateRule
   ): Promise<void> {
     if (Object.keys(fields).length > 0) {
       this.data.nowFields[path] = { fields };
+    } else {
+      delete this.data.nowFields[path];
     }
 
     if (pageTitle !== undefined) {
       this.data.pageTitles[path] = { previousTitle: pageTitle };
+    } else {
+      delete this.data.pageTitles[path];
     }
 
     if (protectedFields && Object.keys(protectedFields).length > 0) {
       this.data.protectedFields[path] = { fields: protectedFields };
+    } else {
+      delete this.data.protectedFields[path];
+    }
+
+    if (appliedRule) {
+      this.data.appliedRules[path] = appliedRule;
+    } else {
+      delete this.data.appliedRules[path];
     }
 
     await this.saveData();
+  }
+
+  getAppliedRule(path: string): AppliedTemplateRule | undefined {
+    return this.data.appliedRules[path];
   }
 
   async update(file: TFile): Promise<void> {
@@ -131,6 +153,13 @@ export class TemplateTracker implements TemplateTrackerHandle {
       changed = true;
     }
 
+    const appliedRule = this.data.appliedRules[oldPath];
+    if (appliedRule) {
+      delete this.data.appliedRules[oldPath];
+      this.data.appliedRules[newPath] = appliedRule;
+      changed = true;
+    }
+
     if (changed) {
       await this.saveData();
     }
@@ -140,14 +169,42 @@ export class TemplateTracker implements TemplateTrackerHandle {
     const hasNowFields = path in this.data.nowFields;
     const hasPageTitle = path in this.data.pageTitles;
     const hasProtectedFields = path in this.data.protectedFields;
-    if (!hasNowFields && !hasPageTitle && !hasProtectedFields) {
+    const hasAppliedRule = path in this.data.appliedRules;
+    if (!hasNowFields && !hasPageTitle && !hasProtectedFields && !hasAppliedRule) {
       return;
     }
 
     delete this.data.nowFields[path];
     delete this.data.pageTitles[path];
     delete this.data.protectedFields[path];
+    delete this.data.appliedRules[path];
     await this.saveData();
+  }
+
+  async renameFolder(oldPath: string, newPath: string): Promise<void> {
+    const changed = [
+      remapDescendantPaths(this.data.nowFields, oldPath, newPath),
+      remapDescendantPaths(this.data.pageTitles, oldPath, newPath),
+      remapDescendantPaths(this.data.protectedFields, oldPath, newPath),
+      remapDescendantPaths(this.data.appliedRules, oldPath, newPath)
+    ].some(Boolean);
+
+    if (changed) {
+      await this.saveData();
+    }
+  }
+
+  async deleteFolder(path: string): Promise<void> {
+    const changed = [
+      deleteDescendantPaths(this.data.nowFields, path),
+      deleteDescendantPaths(this.data.pageTitles, path),
+      deleteDescendantPaths(this.data.protectedFields, path),
+      deleteDescendantPaths(this.data.appliedRules, path)
+    ].some(Boolean);
+
+    if (changed) {
+      await this.saveData();
+    }
   }
 
   private async updatePageTitle(
@@ -206,4 +263,43 @@ function replaceLineTitle(
 function basenameFromPath(path: string): string {
   const name = path.split("/").pop() ?? path;
   return name.endsWith(".md") ? name.slice(0, -3) : name;
+}
+
+function remapDescendantPaths<T>(
+  records: Record<string, T>,
+  oldFolderPath: string,
+  newFolderPath: string
+): boolean {
+  const oldPrefix = `${oldFolderPath}/`;
+  let changed = false;
+
+  for (const [path, record] of Object.entries(records)) {
+    if (!path.startsWith(oldPrefix)) {
+      continue;
+    }
+
+    const nextPath = `${newFolderPath}/${path.slice(oldPrefix.length)}`;
+    delete records[path];
+    records[nextPath] = record;
+    changed = true;
+  }
+
+  return changed;
+}
+
+function deleteDescendantPaths<T>(
+  records: Record<string, T>,
+  folderPath: string
+): boolean {
+  const prefix = `${folderPath}/`;
+  let changed = false;
+
+  for (const path of Object.keys(records)) {
+    if (path.startsWith(prefix)) {
+      delete records[path];
+      changed = true;
+    }
+  }
+
+  return changed;
 }

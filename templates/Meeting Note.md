@@ -1,7 +1,7 @@
 ---
 meeting date: "%{{date}}"
-attendees:
-tags: ["meeting", "work", "project", "follow-up"]
+attendees: %{{field:attendees}}
+tags: %{{tags}}
 created: "%{{datetime}}"
 updated: "%{{nowdatetime}}"
 related: []

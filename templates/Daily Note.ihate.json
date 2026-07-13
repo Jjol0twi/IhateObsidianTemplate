@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "requiredProperties": [
+    "status",
+    "priority",
+    "tags",
+    "created",
+    "updated",
+    "date",
+    "time",
+    "due"
+  ],
+  "protectedProperties": ["created"],
+  "dateProperties": ["date", "due"],
+  "prompts": [
+    {
+      "field": "priority",
+      "label": "Choose priority",
+      "type": "select",
+      "options": [
+        { "label": "낮음", "value": "low" },
+        { "label": "보통", "value": "medium" },
+        { "label": "높음", "value": "high" }
+      ]
+    },
+    {
+      "field": "due",
+      "label": "due",
+      "type": "date"
+    }
+  ]
+}

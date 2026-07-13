@@ -2,7 +2,7 @@
 
 IhateTemplate is an Obsidian plugin for creating and applying notes from simple, explicit markdown templates.
 
-It is intentionally not a Templater extension. IhateTemplate does not execute JavaScript, Templater blocks, or Mustache syntax. It focuses on predictable placeholders, note creation, empty-note templating, and small automatic updates for page titles and timestamps.
+It is intentionally not a Templater extension. IhateTemplate does not execute JavaScript, Templater blocks, or Mustache syntax. It focuses on predictable note creation, explicit template rules, consistent properties and tags, and small workflow views that help you find notes again.
 
 ## Features
 
@@ -19,6 +19,12 @@ It is intentionally not a Templater extension. IhateTemplate does not execute Ja
 - Protect generated `created` frontmatter values by restoring them on save.
 - Track frontmatter fields that use `%{{nowdatetime}}`, `%{{nowdate}}`, or `%{{nowtime}}` and update them on save.
 - Keep template syntax explicit with `%{{...}}`.
+- Canonicalize folder-based tags against tags already used in the vault.
+- Edit tags with searchable suggestions while preventing spelling variants and duplicates.
+- Check note health for missing properties, invalid statuses, malformed tags, and rule-defined date formats.
+- Open a right sidebar with the current note's outline, properties, tags, markers, and health summary.
+- Keep template prompts and validation metadata in optional `.ihate.json` sidecar files.
+- Build live dashboard blocks with safe YAML filters instead of executable query code.
 
 ## Usage
 
@@ -98,9 +104,41 @@ Change IhateTemplate status
 
 This updates the file's `status` frontmatter field using the built-in status picker.
 
+### Smart Tags
+
+Run:
+
+```txt
+IhateTemplate: Edit current file tags
+```
+
+The picker indexes tags already used in the vault, favors tags related to the current file path and title, and treats spelling variants such as `back-end`, `backend`, and `Backend` as the same identity. Existing notes are never rewritten automatically.
+
+Folder-derived `%{{tags}}` values also reuse the most common matching spelling from the vault.
+
+### Note Health
+
+Run:
+
+```txt
+IhateTemplate: Check note health
+```
+
+The health view reports issues first and changes a note only when its fix button is pressed. It checks built-in status values, tag storage and canonical spelling, required properties from template rules, and rule-defined date properties.
+
+### Workspace Panel
+
+Run:
+
+```txt
+IhateTemplate: Open workspace panel
+```
+
+The right sidebar follows the current markdown file and provides its outline, editable status/priority/due values, tags, TODO/FIXME/IDEA markers, and health summary. Clicking an outline heading or marker moves to that source line.
+
 ## Settings
 
-- `Template folder`: vault folder containing markdown templates. Default: `templates`
+- `Template folder`: vault folder containing markdown templates. Default: `_templates`
 - `New note location`: `Current folder` or `Vault root`
 - `Datetime format`: default `YYYY.MM.DD.HH:mm`
 
@@ -121,6 +159,7 @@ Supported placeholders:
 %{{multi:field|A|B|C}}
 %{{datepick:field}}
 %{{property:field}}
+%{{field:field}}
 ```
 
 Unsupported syntax:
@@ -153,7 +192,6 @@ The `field` name is used as the picker label. The selected `value` is inserted i
 Additional prompt placeholders:
 
 ```md
-tags: %{{multi:tags|obsidian|plugin|typescript}}
 due: "%{{datepick:due}}"
 source: "%{{property:source}}"
 ```
@@ -167,7 +205,9 @@ source: "%{{property:source}}"
 - `%{{title}}`: rendered once with the note title.
 - `%{{page}}`: rendered with the note title and tracked for rename updates.
 - `%{{status}}`: renders as `#status/draft` at creation time.
+- `%{{tags}}`: renders the immediate parent folder name as a YAML block list, without prompting.
 - `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`: render interactive prompt values before normal placeholders.
+- `%{{field:...}}`: receives a value from the template's optional `.ihate.json` rule file.
 - `%{{datetime}}`: rendered once using `Datetime format`.
 - `%{{date}}`: rendered once using the date portion of `Datetime format`.
 - `%{{time}}`: rendered once as `HH:mm`.
@@ -178,6 +218,42 @@ source: "%{{property:source}}"
 `now` placeholders are tracked only when they appear in frontmatter fields of notes created or applied by IhateTemplate. Template files themselves are not updated by the tracker.
 
 `created` is not locked in Obsidian's Properties UI, but IhateTemplate tracks the generated value for created/applied notes and restores it on save. `updated` is similarly controlled when it uses a tracked `%{{now...}}` placeholder.
+
+### Template Rule Files
+
+A markdown template can have an optional JSON rule file with the same base name:
+
+```txt
+_templates/Daily Note.md
+_templates/Daily Note.ihate.json
+```
+
+Example:
+
+```json
+{
+  "version": 1,
+  "requiredProperties": ["status", "priority", "tags", "created", "updated", "due"],
+  "protectedProperties": ["created"],
+  "dateProperties": ["due"],
+  "prompts": [
+    {
+      "field": "priority",
+      "label": "Choose priority",
+      "type": "select",
+      "options": [
+        { "label": "Low", "value": "low" },
+        { "label": "High", "value": "high" }
+      ]
+    },
+    { "field": "due", "label": "due", "type": "date" }
+  ]
+}
+```
+
+The markdown file uses `priority: "%{{field:priority}}"` and `due: "%{{field:due}}"`. Supported rule prompt types are `select`, `multi-select`, `date`, and `string-list`. A rule may also set `"titlePrefix": "date"`. Unknown fields, unsupported prompt types, invalid JSON, and executable code are rejected.
+
+Inline prompt placeholders remain supported for backward compatibility.
 
 ### Built-In Status Values
 
@@ -207,7 +283,54 @@ You can also run:
 IhateTemplate: Create dashboard
 ```
 
-If the page already exists, the command refreshes the default dashboard code block and opens it. The dashboard uses an IhateTemplate markdown code block to render a status board with page buttons. Notes store normalized status values in frontmatter, while the board displays Korean status labels.
+If the page already exists, the command opens it without overwriting local edits. The dashboard uses IhateTemplate markdown code blocks to render status and marker blocks. Notes store normalized status values in frontmatter, while the board displays Korean status labels.
+
+The dashboard is block-based. Existing dashboard files are opened without being overwritten, so you can keep only the blocks you want.
+
+````md
+```ihate-template-status
+draft
+```
+
+```ihate-template-status
+review
+```
+
+```ihate-template-todo
+```
+
+```ihate-template-fixme
+```
+
+```ihate-template-idea
+```
+
+```ihate-template-health
+```
+
+```ihate-template-query
+title: Active AWS notes
+status: [draft, review]
+tag: aws
+folder: Projects
+sort: updated
+order: desc
+limit: 12
+layout: grid
+```
+````
+
+Supported dashboard blocks:
+
+- `ihate-template-status-board`: renders every built-in status in one board.
+- `ihate-template-status`: renders one status. Use `draft`, `review`, `done`, `updating`, or `outdated` inside the block.
+- `ihate-template-todo`: renders `%% TODO: ... %%` markers.
+- `ihate-template-fixme`: renders `%% FIXME: ... %%` markers.
+- `ihate-template-idea`: renders `%% IDEA: ... %%` markers.
+- `ihate-template-health`: renders the current vault health summary and opens the review UI.
+- `ihate-template-query`: renders a live note list using validated YAML properties.
+
+Query blocks support `title`, `status`, `tag`, `folder`, `sort`, `order`, `limit`, and `layout`. `status` and `tag` accept either a string or a YAML string list. Sort values are `name`, `created`, `updated`, and `due`; layouts are `list` and `grid`; limits must be between 1 and 200. Unknown properties are rejected.
 
 ## Built-In Templates
 
@@ -216,14 +339,14 @@ If the page already exists, the command refreshes the default dashboard code blo
 - `Daily Note.md`
 - `Test All Elements.md`
 
-The practical templates use only the elements proven in `Test All Elements.md`: title/page, optional status, optional priority select, fixed tag arrays, string-list fields such as meeting attendees, due date picker, and date/time placeholders. Meeting notes prefix the created file title with the current date.
+The practical templates use only the elements proven in `Test All Elements.md`: title/page, folder-based tags, optional status, optional priority select, string-list fields such as meeting attendees, due date picker, and date/time placeholders. Meeting notes prefix the created file title with the current date.
 
 ## Example Template
 
 ```md
 ---
 status: "#status/done"
-tags: []
+tags: %{{tags}}
 created: "%{{datetime}}"
 updated: "%{{nowdatetime}}"
 related: []
@@ -262,26 +385,36 @@ Reload the plugin in Obsidian after each rebuild.
 - `note-creator.ts`: high-level create/insert/apply workflows.
 - `template-engine.ts`: pure placeholder rendering and frontmatter extraction.
 - `template-renderer.ts`: interactive rendering prompts such as custom selects.
+- `template-rules.ts`: validated `.ihate.json` rules and rule-defined prompts.
 - `template-picker.ts`, `title-modal.ts`, `status.ts`: modal UI boundaries.
 - `template-tracker.ts`: tracked updates for `updated`, protected `created`, and `%{{page}}` rename changes.
+- `smart-tags.ts`: vault tag index, canonicalization, and tag editor.
+- `note-health.ts`: health scanning, explicit fixes, and health dashboard block.
+- `workspace-view.ts`: right sidebar for the active note.
 - `vault-paths.ts`: Obsidian vault path and file creation helpers.
 - `dashboard.ts`: default dashboard generation.
-- `templates/*.md`: source of truth for bundled default template content.
+- `dashboard-query.ts`: validated live dashboard queries.
+- `templates/*.md` and `templates/*.ihate.json`: source of truth for bundled templates and rules.
 
 ## Extension Ideas
 
 - Settings UI for editing built-in status labels and values.
-- A template metadata schema for default status, default folder, or required prompts.
 - A custom review board view with drag-and-drop status changes.
+- Previewed property migrations when a template rule changes.
+- Settings UI for defining additional canonical tag aliases.
 - Safer built-in functions such as `%{{folder}}`, `%{{filepath}}`, `%{{slug}}`, or `%{{uuid}}`.
 
 ## Release Build
 
 ```bash
+npm run version:set -- 0.2.0
+npm test
+npm run typecheck
 npm run build
 npm run release:check
 ```
 
+`version:set` updates `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together while preserving previous `versions.json` entries.
 Release mode minifies `main.js` and excludes development-only notices, verbose logs, and the health check command.
 `release:check` verifies version consistency between `package.json`, `manifest.json`, and `versions.json`, and checks the generated release bundle for development-only console artifacts.
 
@@ -316,10 +449,16 @@ MIT
 - Empty markdown files can receive a template without title prompt.
 - Non-empty markdown files are not overwritten by empty-file apply.
 - Status can be changed later from the command palette or file context menu.
+- Smart Tags suggests existing tags and prevents equivalent duplicates.
+- Note Health finds invalid status, tag, date, and required-property issues without changing notes automatically.
+- The workspace panel follows the active note and opens outline headings and markers at their source line.
+- `.ihate.json` rules render `%{{field:...}}` values and invalid rules stop note creation safely.
 - Meeting Note, Summary Note, and Daily Note templates are listed.
 - Custom `%{{select:...}}` prompts render selected values.
 - `Test All Elements.md` can render all supported placeholders and prompt types.
 - `IhateTemplate Dashboard.md` is created on load when missing, and `IhateTemplate: Create dashboard` opens it when present.
+- `ihate-template-health` and `ihate-template-query` blocks update after metadata changes.
+- Query blocks filter by status, tag, and folder, then honor sort, order, limit, and layout.
 - `%{{title}}`, `%{{page}}`, `%{{status}}`, `%{{datetime}}`, `%{{date}}`, and `%{{time}}` render.
 - Prompt placeholders render: `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`.
 - `%{{page}}` updates when a tracked note is renamed.

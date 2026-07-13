@@ -2,7 +2,7 @@
 
 IhateTemplate은 단순하고 명시적인 markdown 템플릿으로 Obsidian 문서를 만들고 적용하는 플러그인입니다.
 
-이 플러그인은 Templater 확장이 아닙니다. JavaScript, Templater 블록, Mustache 문법을 실행하지 않습니다. 예측 가능한 placeholder, 문서 생성, 빈 문서에 템플릿 적용, 페이지 제목과 timestamp의 작은 자동 갱신에 집중합니다.
+이 플러그인은 Templater 확장이 아닙니다. JavaScript, Templater 블록, Mustache 문법을 실행하지 않습니다. 예측 가능한 문서 생성, 명시적인 템플릿 규칙, 일관된 속성과 태그, 다시 문서를 찾기 위한 작은 workflow view에 집중합니다.
 
 ## 기능
 
@@ -19,6 +19,12 @@ IhateTemplate은 단순하고 명시적인 markdown 템플릿으로 Obsidian 문
 - 생성된 `created` frontmatter 값을 저장 시 원래 값으로 복구합니다.
 - `%{{nowdatetime}}`, `%{{nowdate}}`, `%{{nowtime}}`을 사용한 frontmatter 필드를 저장 시 갱신합니다.
 - `%{{...}}` 형태의 명시적인 템플릿 문법만 사용합니다.
+- 폴더 기반 태그를 vault에서 이미 사용하는 대표 표기와 맞춥니다.
+- 검색 가능한 추천창으로 태그를 편집하고 유사 표기와 중복을 막습니다.
+- 필수 속성, 잘못된 status, 잘못 저장된 tags, 규칙에 선언된 날짜 형식을 점검합니다.
+- 현재 문서의 목차, 속성, 태그, marker, 상태 점검을 오른쪽 사이드 패널에 표시합니다.
+- 템플릿 질문과 검증 규칙을 선택적 `.ihate.json` sidecar 파일로 분리합니다.
+- 실행 코드가 아닌 안전한 YAML filter로 실시간 dashboard block을 조립합니다.
 
 ## 사용법
 
@@ -98,9 +104,41 @@ Change IhateTemplate status
 
 이 기능은 기본 상태 선택창으로 해당 파일의 `status` frontmatter 필드를 갱신합니다.
 
+### Smart Tags
+
+아래 명령을 실행합니다.
+
+```txt
+IhateTemplate: Edit current file tags
+```
+
+vault에서 이미 사용하는 태그를 색인하고 현재 파일 경로와 제목에 가까운 태그를 우선 추천합니다. `back-end`, `backend`, `Backend`처럼 같은 의미로 볼 수 있는 표기는 하나의 identity로 취급합니다. 기존 노트는 자동으로 일괄 변경하지 않습니다.
+
+폴더에서 생성하는 `%{{tags}}`도 vault에서 가장 많이 사용하는 일치 표기를 재사용합니다.
+
+### 노트 상태 점검
+
+아래 명령을 실행합니다.
+
+```txt
+IhateTemplate: Check note health
+```
+
+점검 화면은 문제를 먼저 보여주고 각 항목의 수정 버튼을 누른 경우에만 문서를 변경합니다. 기본 status 값, tags 저장 형식과 대표 표기, 템플릿 규칙의 필수 속성과 날짜 속성을 검사합니다.
+
+### Workspace 패널
+
+아래 명령을 실행합니다.
+
+```txt
+IhateTemplate: Open workspace panel
+```
+
+오른쪽 패널은 현재 markdown 파일을 따라가며 목차, status/priority/due 빠른 수정, tags, TODO/FIXME/IDEA marker, 상태 점검 요약을 제공합니다. 목차나 marker를 누르면 원문의 해당 줄로 이동합니다.
+
 ## 설정
 
-- `Template folder`: markdown 템플릿이 있는 vault 폴더입니다. 기본값은 `templates`입니다.
+- `Template folder`: markdown 템플릿이 있는 vault 폴더입니다. 기본값은 `_templates`입니다.
 - `New note location`: `Current folder` 또는 `Vault root`입니다.
 - `Datetime format`: 기본값은 `YYYY.MM.DD.HH:mm`입니다.
 
@@ -121,6 +159,7 @@ Change IhateTemplate status
 %{{multi:field|A|B|C}}
 %{{datepick:field}}
 %{{property:field}}
+%{{field:field}}
 ```
 
 지원하지 않는 문법:
@@ -153,7 +192,6 @@ status: "%{{select:status|작업 중=#status/draft|검토 중=#status/review|작
 추가 prompt placeholder:
 
 ```md
-tags: %{{multi:tags|obsidian|plugin|typescript}}
 due: "%{{datepick:due}}"
 source: "%{{property:source}}"
 ```
@@ -167,7 +205,9 @@ source: "%{{property:source}}"
 - `%{{title}}`: 문서 제목으로 한 번 치환됩니다.
 - `%{{page}}`: 문서 제목으로 치환되고, 파일명 변경 시 갱신 대상으로 추적됩니다.
 - `%{{status}}`: 생성 시 `#status/draft`로 치환됩니다.
+- `%{{tags}}`: 생성/적용 위치의 바로 상위 폴더명을 YAML block list로 렌더링합니다. 생성 시 따로 묻지 않습니다.
 - `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`: 일반 placeholder 치환 전에 interactive prompt 값을 렌더링합니다.
+- `%{{field:...}}`: 선택적 `.ihate.json` 규칙 파일에서 입력받은 값을 사용합니다.
 - `%{{datetime}}`: `Datetime format`으로 한 번 치환됩니다.
 - `%{{date}}`: `Datetime format`의 날짜 부분으로 한 번 치환됩니다.
 - `%{{time}}`: `HH:mm` 형식으로 한 번 치환됩니다.
@@ -178,6 +218,42 @@ source: "%{{property:source}}"
 `now` placeholder는 IhateTemplate으로 생성하거나 적용한 문서의 frontmatter 필드에서 발견된 경우에만 추적됩니다. 템플릿 파일 자체는 tracker가 수정하지 않습니다.
 
 `created`는 Obsidian Properties UI에서 입력 자체를 잠글 수는 없지만, IhateTemplate으로 생성/적용한 문서에서는 생성된 값을 추적하고 저장 시 원래 값으로 복구합니다. `updated`도 추적된 `%{{now...}}` placeholder를 쓰면 저장 시 플러그인이 관리합니다.
+
+### 템플릿 규칙 파일
+
+markdown 템플릿과 같은 이름의 선택적 JSON 규칙 파일을 둘 수 있습니다.
+
+```txt
+_templates/Daily Note.md
+_templates/Daily Note.ihate.json
+```
+
+예시:
+
+```json
+{
+  "version": 1,
+  "requiredProperties": ["status", "priority", "tags", "created", "updated", "due"],
+  "protectedProperties": ["created"],
+  "dateProperties": ["due"],
+  "prompts": [
+    {
+      "field": "priority",
+      "label": "Choose priority",
+      "type": "select",
+      "options": [
+        { "label": "낮음", "value": "low" },
+        { "label": "높음", "value": "high" }
+      ]
+    },
+    { "field": "due", "label": "due", "type": "date" }
+  ]
+}
+```
+
+markdown에서는 `priority: "%{{field:priority}}"`, `due: "%{{field:due}}"`처럼 사용합니다. 규칙 prompt type은 `select`, `multi-select`, `date`, `string-list`를 지원합니다. `"titlePrefix": "date"`로 파일 제목 앞에 날짜를 붙일 수도 있습니다. 알 수 없는 필드, 지원하지 않는 prompt type, 잘못된 JSON, 실행 코드는 거부합니다.
+
+기존 inline prompt placeholder는 호환성을 위해 계속 지원합니다.
 
 ### 기본 상태값
 
@@ -207,7 +283,54 @@ Command Palette에서도 실행할 수 있습니다.
 IhateTemplate: Create dashboard
 ```
 
-이미 있으면 현재 기본 대시보드 형식으로 갱신한 뒤 엽니다. 대시보드는 IhateTemplate 전용 markdown code block으로 status board를 렌더링합니다. frontmatter에는 정규화된 status 값을 저장하고, 대시보드 화면에는 한국어 status label을 보여줍니다.
+이미 있으면 로컬 수정을 덮어쓰지 않고 열기만 합니다. 대시보드는 IhateTemplate 전용 markdown code block으로 status와 marker block을 렌더링합니다. frontmatter에는 정규화된 status 값을 저장하고, 대시보드 화면에는 한국어 status label을 보여줍니다.
+
+대시보드는 block 기반이라 필요한 block만 남기거나 직접 추가할 수 있습니다.
+
+````md
+```ihate-template-status
+draft
+```
+
+```ihate-template-status
+review
+```
+
+```ihate-template-todo
+```
+
+```ihate-template-fixme
+```
+
+```ihate-template-idea
+```
+
+```ihate-template-health
+```
+
+```ihate-template-query
+title: 진행 중인 AWS 노트
+status: [draft, review]
+tag: aws
+folder: Projects
+sort: updated
+order: desc
+limit: 12
+layout: grid
+```
+````
+
+지원하는 dashboard block:
+
+- `ihate-template-status-board`: 기본 status 전체를 하나의 board로 렌더링합니다.
+- `ihate-template-status`: status 하나만 렌더링합니다. block 안에는 `draft`, `review`, `done`, `updating`, `outdated`를 씁니다.
+- `ihate-template-todo`: `%% TODO: ... %%` marker를 렌더링합니다.
+- `ihate-template-fixme`: `%% FIXME: ... %%` marker를 렌더링합니다.
+- `ihate-template-idea`: `%% IDEA: ... %%` marker를 렌더링합니다.
+- `ihate-template-health`: 현재 vault의 상태 점검 요약과 review 진입점을 렌더링합니다.
+- `ihate-template-query`: 검증된 YAML 속성으로 실시간 문서 목록을 렌더링합니다.
+
+Query block은 `title`, `status`, `tag`, `folder`, `sort`, `order`, `limit`, `layout`을 지원합니다. `status`와 `tag`는 문자열 또는 YAML 문자열 목록을 받습니다. sort는 `name`, `created`, `updated`, `due`, layout은 `list`, `grid`, limit은 1부터 200까지 사용할 수 있습니다. 알 수 없는 속성은 거부합니다.
 
 ## 기본 템플릿
 
@@ -216,14 +339,14 @@ IhateTemplate: Create dashboard
 - `Daily Note.md`
 - `Test All Elements.md`
 
-실사용 템플릿은 `Test All Elements.md`에서 검증한 요소만 사용합니다: title/page, 선택적 status, 선택적 priority select, 고정 tag 배열, meeting attendees 같은 문자열 목록 필드, due 날짜 선택, date/time placeholder. 미팅 노트는 생성되는 파일 제목 앞에 현재 날짜를 붙입니다.
+실사용 템플릿은 `Test All Elements.md`에서 검증한 요소만 사용합니다: title/page, 폴더 기반 tags, 선택적 status, 선택적 priority select, meeting attendees 같은 문자열 목록 필드, due 날짜 선택, date/time placeholder. 미팅 노트는 생성되는 파일 제목 앞에 현재 날짜를 붙입니다.
 
 ## 예시 템플릿
 
 ```md
 ---
 status: "#status/done"
-tags: []
+tags: %{{tags}}
 created: "%{{datetime}}"
 updated: "%{{nowdatetime}}"
 related: []
@@ -262,26 +385,36 @@ npm run dev
 - `note-creator.ts`: 새 문서 생성, 삽입, 빈 파일 적용의 상위 workflow
 - `template-engine.ts`: 순수 placeholder 렌더링과 frontmatter 추출
 - `template-renderer.ts`: custom select 같은 interactive render prompt 처리
+- `template-rules.ts`: 검증된 `.ihate.json` 규칙과 규칙 기반 prompt 처리
 - `template-picker.ts`, `title-modal.ts`, `status.ts`: modal UI 경계
 - `template-tracker.ts`: `updated`, 보호된 `created`, `%{{page}}` rename 갱신 추적
+- `smart-tags.ts`: vault tag 색인, 대표 표기 결정, tag 편집기
+- `note-health.ts`: 상태 점검, 명시적 수정, health dashboard block
+- `workspace-view.ts`: 현재 문서의 오른쪽 사이드 패널
 - `vault-paths.ts`: Obsidian vault path와 파일 생성 helper
 - `dashboard.ts`: 기본 dashboard 생성
-- `templates/*.md`: bundled default template 본문의 source of truth
+- `dashboard-query.ts`: 검증된 실시간 dashboard query
+- `templates/*.md`, `templates/*.ihate.json`: bundled template 본문과 규칙의 source of truth
 
 ## 추가하기 좋은 기능
 
 - 기본 status label/value를 수정하는 settings UI
-- 템플릿별 기본 status, 기본 생성 폴더, 필수 prompt를 정의하는 template metadata
 - drag-and-drop으로 status를 바꿀 수 있는 custom review board view
+- 템플릿 규칙 변경 시 속성 migration 미리보기
+- 추가 tag alias를 정의하는 settings UI
 - `%{{folder}}`, `%{{filepath}}`, `%{{slug}}`, `%{{uuid}}` 같은 안전한 built-in 함수
 
 ## 릴리즈 빌드
 
 ```bash
+npm run version:set -- 0.2.0
+npm test
+npm run typecheck
 npm run build
 npm run release:check
 ```
 
+`version:set`은 기존 `versions.json` 기록을 보존하면서 `package.json`, `package-lock.json`, `manifest.json`, `versions.json`의 버전을 함께 변경합니다.
 릴리즈 모드는 `main.js`를 minify하고 개발용 Notice, verbose log, health check command를 제외합니다.
 `release:check`는 `package.json`, `manifest.json`, `versions.json`의 버전 일치 여부와 release bundle에 개발용 console artifact가 남았는지 확인합니다.
 
@@ -316,10 +449,16 @@ MIT
 - 빈 markdown 파일에 제목 질문 없이 템플릿을 적용할 수 있습니다.
 - 내용이 있는 markdown 파일은 빈 파일 적용 기능으로 덮어쓰지 않습니다.
 - 명령 팔레트 또는 파일 오른쪽 클릭 메뉴로 status를 나중에 변경할 수 있습니다.
+- Smart Tags가 기존 태그를 추천하고 같은 identity의 중복 태그를 막습니다.
+- Note Health가 노트를 자동 변경하지 않고 status, tags, date, 필수 속성 문제를 찾습니다.
+- Workspace 패널이 현재 문서를 따라가고 목차와 marker의 원문 줄을 엽니다.
+- `.ihate.json` 규칙이 `%{{field:...}}` 값을 렌더링하고 잘못된 규칙은 안전하게 생성을 중단합니다.
 - Meeting Note, Summary Note, Daily Note 템플릿이 목록에 표시됩니다.
 - 커스텀 `%{{select:...}}` prompt가 선택 값을 치환합니다.
 - `Test All Elements.md`로 모든 지원 placeholder와 prompt 타입을 검증할 수 있습니다.
 - `IhateTemplate Dashboard.md`는 없으면 로드 시 생성되고, `IhateTemplate: Create dashboard`는 이미 있는 대시보드를 엽니다.
+- `ihate-template-health`, `ihate-template-query` block이 metadata 변경 뒤 갱신됩니다.
+- Query block이 status, tag, folder를 필터링하고 sort, order, limit, layout을 적용합니다.
 - `%{{title}}`, `%{{page}}`, `%{{status}}`, `%{{datetime}}`, `%{{date}}`, `%{{time}}`이 치환됩니다.
 - Prompt placeholder가 치환됩니다: `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`.
 - 추적된 문서의 파일명을 바꾸면 `%{{page}}`로 생성된 제목이 갱신됩니다.

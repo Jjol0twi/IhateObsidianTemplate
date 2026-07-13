@@ -1,9 +1,9 @@
 {
   "id": "ihate-template",
   "name": "IhateTemplate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minAppVersion": "1.8.0",
-  "description": "Create and insert notes from simple explicit templates.",
+  "description": "Create consistent notes with explicit templates, smart tags, health checks, and dashboards.",
   "author": "IhateTemplate contributors",
   "authorUrl": "",
   "fundingUrl": "",

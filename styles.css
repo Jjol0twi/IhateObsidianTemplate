@@ -38,6 +38,10 @@
   margin-top: 16px;
 }
 
+.ihate-template-status-block {
+  margin: 12px 0;
+}
+
 .ihate-template-status-section {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -123,4 +127,512 @@
 .ihate-template-status-empty {
   color: var(--text-muted);
   padding: 8px 0;
+}
+
+.ihate-template-marker-block {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  margin: 12px 0;
+  padding: 0 12px 12px;
+  overflow: hidden;
+}
+
+.ihate-template-marker-block h3 {
+  margin: 0 -12px 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-hover);
+  font-size: var(--font-ui-medium);
+  font-weight: 700;
+}
+
+.ihate-template-marker-block h3::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: var(--text-accent);
+  vertical-align: 1px;
+}
+
+.ihate-template-marker-todo h3::before {
+  background: var(--color-blue);
+}
+
+.ihate-template-marker-fixme h3::before {
+  background: var(--color-red);
+}
+
+.ihate-template-marker-idea h3::before {
+  background: var(--color-yellow);
+}
+
+.ihate-template-marker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ihate-template-marker-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+  justify-content: flex-start;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: none;
+  text-align: left;
+}
+
+.ihate-template-marker-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-marker-meta {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.ihate-template-title-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.ihate-template-smart-tags input {
+  width: 100%;
+}
+
+.ihate-template-smart-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 38px;
+  margin-bottom: 12px;
+}
+
+.ihate-template-smart-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  background: var(--background-secondary);
+  padding: 4px 4px 4px 10px;
+}
+
+.ihate-template-smart-tag-chip > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ihate-template-smart-tag-chip button,
+.ihate-template-health-summary button,
+.ihate-template-workspace-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.ihate-template-smart-tag-chip svg,
+.ihate-template-health-summary svg,
+.ihate-template-workspace-actions svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ihate-template-smart-tag-suggestions {
+  display: grid;
+  gap: 6px;
+  max-height: 260px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+
+.ihate-template-smart-tag-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+}
+
+.ihate-template-smart-tag-suggestion:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ihate-template-smart-tag-count,
+.ihate-template-smart-tag-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.ihate-template-health-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  margin-bottom: 12px;
+}
+
+.ihate-template-health-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(60vh, 640px);
+  overflow-y: auto;
+}
+
+.ihate-template-health-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 8px 0;
+}
+
+.ihate-template-health-description {
+  min-width: 0;
+}
+
+.ihate-template-health-file {
+  overflow: hidden;
+  color: var(--text-normal);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-health-message,
+.ihate-template-health-loading {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.ihate-template-health-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ihate-template-health-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.ihate-template-health-actions svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ihate-template-workspace-view {
+  padding: 10px 12px 24px;
+  overflow-y: auto;
+}
+
+.ihate-template-workspace-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ihate-template-workspace-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-normal);
+  font-size: var(--font-ui-medium);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-workspace-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.ihate-template-workspace-section {
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ihate-template-workspace-section h3 {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  font-weight: 600;
+}
+
+.ihate-template-workspace-property {
+  display: grid;
+  grid-template-columns: minmax(72px, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+}
+
+.ihate-template-workspace-property:hover,
+.ihate-template-workspace-outline-item:hover,
+.ihate-template-workspace-marker:hover,
+.ihate-template-workspace-health:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ihate-template-workspace-property-label {
+  color: var(--text-muted);
+}
+
+.ihate-template-workspace-property-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-workspace-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ihate-template-workspace-tag {
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--tag-background);
+  color: var(--tag-color);
+  padding: 3px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-workspace-outline,
+.ihate-template-workspace-marker-list {
+  display: grid;
+  gap: 2px;
+}
+
+.ihate-template-workspace-outline-item {
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-workspace-marker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+}
+
+.ihate-template-workspace-marker-kind {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: 700;
+}
+
+.ihate-template-workspace-marker-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-workspace-health {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+}
+
+.ihate-template-workspace-health svg,
+.ihate-template-workspace-empty svg,
+.ihate-template-health-block-empty svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ihate-template-workspace-empty,
+.ihate-template-health-block-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  padding: 12px 0;
+}
+
+.ihate-template-workspace-muted {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.ihate-template-query-block,
+.ihate-template-health-block {
+  margin: 12px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  padding: 12px;
+}
+
+.ihate-template-query-block > h3,
+.ihate-template-health-block h3 {
+  margin: 0;
+  font-size: var(--font-ui-medium);
+}
+
+.ihate-template-query-results {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ihate-template-query-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+}
+
+.ihate-template-query-item {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-query-error {
+  color: var(--text-error);
+}
+
+.ihate-template-health-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ihate-template-health-block-count {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.ihate-template-health-block-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ihate-template-health-block-item {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.7fr) minmax(0, 1.3fr);
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  box-shadow: none;
+  color: var(--text-normal);
+  text-align: left;
+}
+
+.ihate-template-health-block-file,
+.ihate-template-health-block-message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-health-block-file {
+  font-weight: 600;
+}
+
+.ihate-template-health-block-message {
+  color: var(--text-muted);
+}
+
+@media (max-width: 500px) {
+  .ihate-template-health-item,
+  .ihate-template-health-block-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ihate-template-health-actions {
+    justify-content: flex-end;
+  }
 }

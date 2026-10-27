@@ -201,12 +201,12 @@ export class IhateTemplateWorkspaceView extends ItemView {
       cls: "ihate-template-workspace-outline"
     });
     for (const heading of headings) {
+      const level = Math.min(Math.max(heading.level, 1), 6);
       const item = list.createEl("button", {
-        cls: "ihate-template-workspace-outline-item",
+        cls: `ihate-template-workspace-outline-item ihate-template-workspace-outline-level-${level}`,
         text: heading.heading,
         attr: { type: "button" }
       });
-      item.style.paddingInlineStart = `${8 + (heading.level - 1) * 10}px`;
       item.onClickEvent(() => {
         this.runAction(() => openFileAtLine(
           this.app,

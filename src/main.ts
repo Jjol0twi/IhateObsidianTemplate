@@ -113,7 +113,6 @@ export default class IhateTemplatePlugin extends Plugin {
   }
 
   onunload(): void {
-    this.app.workspace.detachLeavesOfType(WORKSPACE_VIEW_TYPE);
     if (IS_DEV) {
       console.log("IhateTemplate unloaded");
     }

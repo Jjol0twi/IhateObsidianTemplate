@@ -445,12 +445,14 @@ Reload the plugin in Obsidian after each rebuild.
 ## Release Build
 
 ```bash
-npm run version:set -- 0.2.0
+npm run version:set -- 0.3.0
 npm test
 npm run typecheck
 npm run build
 npm run release:check
 ```
+
+The default build writes into the development vault's plugin folder. Set `IHATE_OUT_DIR=.` to emit `main.js` in the repository root instead (it is gitignored); `release:check` reads the same variable.
 
 `version:set` updates `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together while preserving previous `versions.json` entries.
 Release mode minifies `main.js` and excludes development-only notices, verbose logs, and the health check command.
@@ -461,6 +463,12 @@ The GitHub release assets are:
 - `main.js`
 - `manifest.json`
 - `styles.css`
+
+`.github/workflows/release.yml` runs the tests, typecheck, release build, and `release:check` when a tag matching the manifest version is pushed, then creates a draft GitHub release with those three files attached. Review the draft on GitHub and publish it.
+
+```bash
+git tag 0.3.0 && git push origin 0.3.0
+```
 
 For manual installation, copy those files into:
 

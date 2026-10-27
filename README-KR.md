@@ -445,12 +445,14 @@ npm run dev
 ## 릴리즈 빌드
 
 ```bash
-npm run version:set -- 0.2.0
+npm run version:set -- 0.3.0
 npm test
 npm run typecheck
 npm run build
 npm run release:check
 ```
+
+기본 빌드는 개발 vault의 플러그인 폴더에 씁니다. `IHATE_OUT_DIR=.`를 주면 저장소 루트에 `main.js`를 만들며(`.gitignore` 대상), `release:check`도 같은 변수를 읽습니다.
 
 `version:set`은 기존 `versions.json` 기록을 보존하면서 `package.json`, `package-lock.json`, `manifest.json`, `versions.json`의 버전을 함께 변경합니다.
 릴리즈 모드는 `main.js`를 minify하고 개발용 Notice, verbose log, health check command를 제외합니다.
@@ -461,6 +463,12 @@ GitHub release에 올릴 파일은 아래 세 개입니다.
 - `main.js`
 - `manifest.json`
 - `styles.css`
+
+`.github/workflows/release.yml`은 버전과 같은 이름의 tag를 push하면 테스트, 타입체크, 릴리즈 빌드, `release:check`를 거쳐 위 세 파일을 첨부한 draft release를 만듭니다. GitHub에서 draft를 확인하고 publish하면 됩니다.
+
+```bash
+git tag 0.3.0 && git push origin 0.3.0
+```
 
 수동 설치 시에는 위 파일을 아래 폴더에 복사합니다.
 

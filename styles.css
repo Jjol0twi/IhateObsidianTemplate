@@ -652,6 +652,13 @@
   white-space: nowrap;
 }
 
+.ihate-template-workspace-outline-level-1 { padding-inline-start: 8px; }
+.ihate-template-workspace-outline-level-2 { padding-inline-start: 18px; }
+.ihate-template-workspace-outline-level-3 { padding-inline-start: 28px; }
+.ihate-template-workspace-outline-level-4 { padding-inline-start: 38px; }
+.ihate-template-workspace-outline-level-5 { padding-inline-start: 48px; }
+.ihate-template-workspace-outline-level-6 { padding-inline-start: 58px; }
+
 .ihate-template-workspace-marker {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

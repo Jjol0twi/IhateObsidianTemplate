@@ -8,12 +8,14 @@ export interface IhateTemplateSettings {
   templateFolder: string;
   newNoteLocation: NewNoteLocation;
   datetimeFormat: string;
+  wideTables: boolean;
 }
 
 export const DEFAULT_SETTINGS: IhateTemplateSettings = {
   templateFolder: DEFAULT_TEMPLATE_FOLDER,
   newNoteLocation: "current-folder",
-  datetimeFormat: DEFAULT_DATETIME_FORMAT
+  datetimeFormat: DEFAULT_DATETIME_FORMAT,
+  wideTables: true
 };
 
 export class IhateTemplateSettingTab extends PluginSettingTab {
@@ -97,6 +99,18 @@ export class IhateTemplateSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.datetimeFormat =
               value.trim() || DEFAULT_DATETIME_FORMAT;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Auto-fit tables")
+      .setDesc("Automatically size tables to their content. Expand beyond the text column only when needed, and wrap at the note pane edge.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.wideTables)
+          .onChange(async (value) => {
+            this.plugin.settings.wideTables = value;
             await this.plugin.saveSettings();
           })
       );

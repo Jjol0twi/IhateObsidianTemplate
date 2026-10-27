@@ -25,6 +25,7 @@ IhateTemplate은 단순하고 명시적인 markdown 템플릿으로 Obsidian 문
 - 현재 문서의 목차, 속성, 태그, marker, 상태 점검을 오른쪽 사이드 패널에 표시합니다.
 - 템플릿 질문과 검증 규칙을 선택적 `.ihate.json` sidecar 파일로 분리합니다.
 - 실행 코드가 아닌 안전한 YAML filter로 실시간 dashboard block을 조립합니다.
+- 여러 언어의 코드 예제를 하나의 탭형 코드 블록으로 표시합니다.
 
 ## 사용법
 
@@ -141,6 +142,7 @@ IhateTemplate: Open workspace panel
 - `Template folder`: markdown 템플릿이 있는 vault 폴더입니다. 기본값은 `_templates`입니다.
 - `New note location`: `Current folder` 또는 `Vault root`입니다.
 - `Datetime format`: 기본값은 `YYYY.MM.DD.HH:mm`입니다.
+- `Auto-fit tables` (표 너비 자동 조절): 기본값은 켜짐입니다. 읽기 모드와 Live Preview에서 내용에 필요한 너비가 본문 폭을 넘는 일반 Markdown 표만 바깥으로 확장합니다. 본문 안에 들어가는 표는 행이 많아도 본문과 같은 시작 위치를 유지합니다. 확장은 문서 영역의 여유 너비까지이며 일반 본문 폭은 유지합니다. 그 이상은 셀의 긴 글, URL, 인라인 코드를 가로 스크롤 대신 줄바꿈합니다. 창 너비가 바뀌면 자동으로 다시 배치합니다. 끄면 테마의 원래 표 배치로 즉시 돌아가며 별도 표 문법은 필요하지 않습니다.
 
 ## 템플릿 문법
 
@@ -332,6 +334,33 @@ layout: grid
 
 Query block은 `title`, `status`, `tag`, `folder`, `sort`, `order`, `limit`, `layout`을 지원합니다. `status`와 `tag`는 문자열 또는 YAML 문자열 목록을 받습니다. sort는 `name`, `created`, `updated`, `due`, layout은 `list`, `grid`, limit은 1부터 200까지 사용할 수 있습니다. 알 수 없는 속성은 거부합니다.
 
+## 코드 탭
+
+`ihate-template-code`를 사용하면 여러 언어의 예제를 하나의 코드 영역으로 표시합니다. 선택한 탭의 코드는 전체 길이로 보이고, 나머지 예제는 문서 공간을 차지하지 않습니다. 높이 제한이나 내부 세로 스크롤은 없습니다. 탭이 많아지면 줄바꿈 대신 가로로 스크롤합니다.
+
+바깥 블록은 백틱 네 개, 각 예제는 백틱 세 개로 작성합니다.
+
+`````md
+````ihate-template-code
+```kotlin Main.kt
+println("Hello")
+```
+```python hello.py
+print("Hello")
+```
+````
+`````
+
+내부 코드 블록의 첫 단어는 언어 ID이고, 그 뒤의 문자열은 선택적인 탭 이름입니다. 탭 이름을 생략하면 언어 ID가 표시됩니다. 같은 언어의 예제도 여러 개 넣을 수 있습니다. 예제 자체에 백틱 세 개짜리 블록이 있으면 내부 구분자를 더 길게 쓰고, 바깥 구분자는 그보다 더 길게 작성합니다.
+
+- 탭 클릭 또는 탭에 포커스한 상태에서 좌우 방향키, Home, End로 전환합니다.
+- 복사 버튼은 현재 선택한 예제만 복사합니다.
+- Obsidian에 포함된 Prism 문법으로 구문을 강조하며, 모르는 언어는 일반 텍스트로 표시합니다.
+- HTML이나 실행형 플러그인의 언어를 넣어도 코드를 실행하지 않습니다.
+- 읽기 보기와 렌더링된 Live Preview에서는 탭으로 보입니다. 소스 모드나 블록 편집 중에는 전체 Markdown 원문이 보입니다. 탭 표시는 플러그인이 켜져 있어야 동작합니다.
+
+전체 예제는 [Code Tabs.md](examples/Code%20Tabs.md)에 있습니다. 기존 문서와 템플릿은 자동 변경하지 않습니다.
+
 ## 기본 템플릿
 
 - `Meeting Note.md`
@@ -394,6 +423,7 @@ npm run dev
 - `vault-paths.ts`: Obsidian vault path와 파일 생성 helper
 - `dashboard.ts`: 기본 dashboard 생성
 - `dashboard-query.ts`: 검증된 실시간 dashboard query
+- `code-tabs-parser.ts`, `code-tabs.ts`: 코드 블록 파싱과 선택한 예제만 표시하는 탭 렌더러
 - `templates/*.md`, `templates/*.ihate.json`: bundled template 본문과 규칙의 source of truth
 
 ## 추가하기 좋은 기능
@@ -436,6 +466,8 @@ Obsidian 커뮤니티 플러그인으로 공식 제출하려면 repository root�
 
 MIT
 
+코드 탭 파싱에는 MIT 라이선스의 [Marked](https://github.com/markedjs/marked)를 사용합니다. 구문 강조는 Obsidian이 제공하는 Prism 인스턴스를 사용합니다.
+
 ## 수동 테스트 체크리스트
 
 - 플러그인이 로드되고 settings tab이 표시됩니다.
@@ -459,6 +491,9 @@ MIT
 - `IhateTemplate Dashboard.md`는 없으면 로드 시 생성되고, `IhateTemplate: Create dashboard`는 이미 있는 대시보드를 엽니다.
 - `ihate-template-health`, `ihate-template-query` block이 metadata 변경 뒤 갱신됩니다.
 - Query block이 status, tag, folder를 필터링하고 sort, order, limit, layout을 적용합니다.
+- 코드 탭은 선택한 예제만 전체 길이로 표시하며 높이 제한과 내부 세로 스크롤은 없습니다.
+- 읽기 보기와 Live Preview에서 키보드 탭 전환, 현재 탭 복사, 알 수 없는 언어, HTML 원문 표시가 동작합니다.
+- Auto-fit tables는 기본 켜짐입니다. 본문에 들어가는 표는 본문 안에 유지되고 너비가 부족한 표만 확장하며, 일반 본문 폭은 유지합니다. 창 너비를 바꿔 긴 글, URL, 인라인 코드가 가로 스크롤 없이 줄바꿈하는지 확인합니다. 끄거나 플러그인을 해제하면 원래 배치로 돌아가는지 `examples/Wide Tables.md`로 확인합니다.
 - `%{{title}}`, `%{{page}}`, `%{{status}}`, `%{{datetime}}`, `%{{date}}`, `%{{time}}`이 치환됩니다.
 - Prompt placeholder가 치환됩니다: `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`.
 - 추적된 문서의 파일명을 바꾸면 `%{{page}}`로 생성된 제목이 갱신됩니다.

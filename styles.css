@@ -4,6 +4,191 @@
   gap: 12px;
 }
 
+/* Size against the pane, not the app window or the readable text column. */
+.ihate-template-wide-tables > .view-content > .markdown-reading-view > .markdown-preview-view,
+.ihate-template-wide-tables > .view-content > .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller {
+  container-type: inline-size;
+}
+
+.ihate-template-wide-tables > .view-content > .markdown-reading-view > .markdown-preview-view > .markdown-preview-sizer > .el-table {
+  /* Keep fitting tables in the text column; expand only to their intrinsic width. */
+  position: relative;
+  left: 50%;
+  width: max-content;
+  min-width: 100%;
+  max-width: 100cqw;
+  margin-inline: 0;
+  transform: translateX(-50%);
+}
+
+.ihate-template-wide-tables > .view-content > .markdown-source-view.mod-cm6 > .cm-editor > .cm-scroller > .cm-sizer > .cm-contentContainer > .cm-content > .cm-table-widget:not(.is-loading) {
+  box-sizing: border-box;
+  position: relative;
+  left: 50%;
+  width: max-content;
+  /* Preserve the editor's drag-handle space without indenting fitting tables. */
+  min-width: calc(100% + 2 * var(--table-drag-handle-size));
+  max-width: calc(100cqw + 2 * var(--table-drag-handle-size));
+  margin-inline: 0 !important;
+  transform: translateX(-50%);
+  overflow: visible;
+}
+
+.ihate-template-wide-tables .markdown-source-view.mod-cm6 .cm-table-widget > .table-wrapper {
+  width: fit-content;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ihate-template-wide-tables :is(.el-table > table, .cm-table-widget > .table-wrapper > table) {
+  --table-white-space: normal;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: auto;
+}
+
+.ihate-template-wide-tables :is(.el-table > table, .cm-table-widget > .table-wrapper > table) :is(th, td) {
+  min-width: 0;
+  max-width: 40ch;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.ihate-template-wide-tables :is(.el-table > table, .cm-table-widget > .table-wrapper > table) :is(code, a, .table-cell-wrapper, .cm-content.cm-lineWrapping, .cm-line) {
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.ihate-template-code-block {
+  min-width: 0;
+  max-width: 100%;
+  margin: 12px 0;
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--code-background);
+}
+
+.ihate-template-code-toolbar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 40px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.ihate-template-code-tabs {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  min-width: 0;
+  height: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ihate-template-code-tabs .ihate-template-code-tab {
+  flex: 0 0 auto;
+  max-width: 200px;
+  height: 100%;
+  margin: 0;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ihate-template-code-tabs .ihate-template-code-tab:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ihate-template-code-tabs .ihate-template-code-tab[aria-selected="true"] {
+  border-bottom-color: var(--interactive-accent);
+  background: var(--code-background);
+  color: var(--text-normal);
+}
+
+.ihate-template-code-toolbar .ihate-template-code-copy {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  margin: 0 4px;
+  padding: 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.ihate-template-code-copy svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ihate-template-code-copy:hover {
+  background: var(--background-modifier-hover);
+}
+
+.ihate-template-code-block .ihate-template-code-tab:focus-visible,
+.ihate-template-code-block .ihate-template-code-copy:focus-visible,
+.ihate-template-code-block .ihate-template-code-panel:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+}
+
+.ihate-template-code-block .ihate-template-code-panel {
+  box-sizing: border-box;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 0;
+  background: var(--code-background);
+  color: var(--code-normal);
+  font-family: var(--font-monospace);
+  font-size: var(--code-size);
+  line-height: 1.5;
+  tab-size: 4;
+  white-space: pre;
+}
+
+.ihate-template-code-panel > code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.ihate-template-code-error {
+  padding: 12px;
+  color: var(--text-error);
+}
+
 .ihate-template-title-modal input {
   width: 100%;
 }

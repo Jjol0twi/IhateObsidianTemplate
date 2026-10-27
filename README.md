@@ -25,6 +25,7 @@ It is intentionally not a Templater extension. IhateTemplate does not execute Ja
 - Open a right sidebar with the current note's outline, properties, tags, markers, and health summary.
 - Keep template prompts and validation metadata in optional `.ihate.json` sidecar files.
 - Build live dashboard blocks with safe YAML filters instead of executable query code.
+- Display multiple language examples in one compact, tabbed code block.
 
 ## Usage
 
@@ -141,6 +142,7 @@ The right sidebar follows the current markdown file and provides its outline, ed
 - `Template folder`: vault folder containing markdown templates. Default: `_templates`
 - `New note location`: `Current folder` or `Vault root`
 - `Datetime format`: default `YYYY.MM.DD.HH:mm`
+- `Auto-fit tables`: enabled by default. In Reading view and Live Preview, standard Markdown tables expand beyond the text column only when their content needs more width. Tables that fit stay aligned with the text column, even if they have many rows. Wider tables use the available note pane width without widening paragraphs; cell text, long URLs, and inline code wrap at that limit instead of requiring horizontal scrolling. The layout adapts when the pane is resized. Turn it off to restore the theme's table layout immediately. No special table syntax is needed.
 
 ## Template Syntax
 
@@ -332,6 +334,33 @@ Supported dashboard blocks:
 
 Query blocks support `title`, `status`, `tag`, `folder`, `sort`, `order`, `limit`, and `layout`. `status` and `tag` accept either a string or a YAML string list. Sort values are `name`, `created`, `updated`, and `due`; layouts are `list` and `grid`; limits must be between 1 and 200. Unknown properties are rejected.
 
+## Code Tabs
+
+Use `ihate-template-code` to show multiple language examples in one code area. Only the selected tab is displayed, in its full length; the other examples do not take up space in the note. There is no height limit or internal vertical scrolling. The tab bar scrolls horizontally rather than wrapping into extra rows.
+
+Use four backticks for the outer block and three for each example:
+
+`````md
+````ihate-template-code
+```kotlin Main.kt
+println("Hello")
+```
+```python hello.py
+print("Hello")
+```
+````
+`````
+
+The first word after an inner fence is the language ID. The remaining text is an optional tab label; without it, the language ID is the label. Multiple examples may use the same language. If an example contains triple backtick fences itself, use longer inner fences and an even longer outer fence.
+
+- Click a tab or use Left/Right, Home, and End while a tab is focused.
+- The copy button copies only the selected example.
+- Highlighting uses Obsidian's bundled Prism grammars; unknown languages display as plain text.
+- Code is never executed, including HTML and executable plugin languages.
+- Reading view and rendered Live Preview show tabs. Source mode or editing the block shows all of its Markdown source. The plugin must be enabled to display tabs.
+
+See [Code Tabs.md](examples/Code%20Tabs.md) for a complete example. Existing notes and templates are not rewritten.
+
 ## Built-In Templates
 
 - `Meeting Note.md`
@@ -394,6 +423,7 @@ Reload the plugin in Obsidian after each rebuild.
 - `vault-paths.ts`: Obsidian vault path and file creation helpers.
 - `dashboard.ts`: default dashboard generation.
 - `dashboard-query.ts`: validated live dashboard queries.
+- `code-tabs-parser.ts`, `code-tabs.ts`: fenced-code parsing and the compact tabbed renderer.
 - `templates/*.md` and `templates/*.ihate.json`: source of truth for bundled templates and rules.
 
 ## Extension Ideas
@@ -436,6 +466,8 @@ For an official Obsidian community plugin submission, the repository also needs 
 
 MIT
 
+Code-tab parsing uses [Marked](https://github.com/markedjs/marked), licensed under MIT. Syntax highlighting uses the Prism instance provided by Obsidian.
+
 ## Manual Test Checklist
 
 - Plugin loads and settings tab appears.
@@ -459,6 +491,9 @@ MIT
 - `IhateTemplate Dashboard.md` is created on load when missing, and `IhateTemplate: Create dashboard` opens it when present.
 - `ihate-template-health` and `ihate-template-query` blocks update after metadata changes.
 - Query blocks filter by status, tag, and folder, then honor sort, order, limit, and layout.
+- Code tabs show only the selected example in full, without a height limit or internal vertical scrolling.
+- Code-tab keyboard navigation, current-tab copy, unknown languages, and literal HTML work in Reading view and Live Preview.
+- Auto-fit tables default to on. Tables that fit stay in the text column; only tables needing more width expand, while paragraphs retain their width. Resize the pane to check that long text, URLs, and inline code wrap without horizontal scrolling. Toggling off or unloading restores the original layout; test with `examples/Wide Tables.md`.
 - `%{{title}}`, `%{{page}}`, `%{{status}}`, `%{{datetime}}`, `%{{date}}`, and `%{{time}}` render.
 - Prompt placeholders render: `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`.
 - `%{{page}}` updates when a tracked note is renamed.

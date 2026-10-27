@@ -55,16 +55,23 @@ import {
   WORKSPACE_VIEW_TYPE
 } from "./workspace-view";
 import { DashboardQueryBlock, QUERY_CODE_BLOCK } from "./dashboard-query";
+import { CODE_TABS_CODE_BLOCK, CodeTabsBlock } from "./code-tabs";
+import { WideTableLayout } from "./wide-tables";
 
 export default class IhateTemplatePlugin extends Plugin {
   settings: IhateTemplateSettings = { ...DEFAULT_SETTINGS };
   data: IhateTemplateData = structuredClone(DEFAULT_DATA);
   tracker!: TemplateTracker;
   private shouldMigrateLegacyTemplateFolder = false;
+  private wideTableLayout?: WideTableLayout;
 
   async onload(): Promise<void> {
     await this.loadSettings();
     await this.loadPluginData();
+
+    this.wideTableLayout = this.addChild(
+      new WideTableLayout(this.app.workspace, this.settings.wideTables)
+    );
 
     this.tracker = new TemplateTracker(
       this.app,
@@ -126,7 +133,10 @@ export default class IhateTemplatePlugin extends Plugin {
         : "current-folder",
       datetimeFormat: typeof stored.datetimeFormat === "string"
         ? stored.datetimeFormat.trim() || DEFAULT_SETTINGS.datetimeFormat
-        : DEFAULT_SETTINGS.datetimeFormat
+        : DEFAULT_SETTINGS.datetimeFormat,
+      wideTables: typeof stored.wideTables === "boolean"
+        ? stored.wideTables
+        : DEFAULT_SETTINGS.wideTables
     };
     this.shouldMigrateLegacyTemplateFolder =
       templateFolder === LEGACY_DEFAULT_TEMPLATE_FOLDER;
@@ -137,6 +147,7 @@ export default class IhateTemplatePlugin extends Plugin {
   }
 
   async saveSettings(): Promise<void> {
+    this.wideTableLayout?.setEnabled(this.settings.wideTables);
     await this.saveData({
       ...this.settings,
       __pluginData: this.data
@@ -317,6 +328,13 @@ export default class IhateTemplatePlugin extends Plugin {
   }
 
   private registerMarkdownProcessors(): void {
+    this.registerMarkdownCodeBlockProcessor(
+      CODE_TABS_CODE_BLOCK,
+      (source, el, context) => {
+        context.addChild(new CodeTabsBlock(el, source));
+      }
+    );
+
     this.registerMarkdownCodeBlockProcessor(
       STATUS_BOARD_CODE_BLOCK,
       (_source, el, context) => {

@@ -4,7 +4,7 @@
   "version": "0.3.0",
   "minAppVersion": "1.8.0",
   "description": "Create consistent notes with explicit templates, smart tags, health checks, and dashboards.",
-  "author": "IhateTemplate contributors",
-  "authorUrl": "",
+  "author": "hongham",
+  "authorUrl": "https://github.com/Jjol0twi",
   "isDesktopOnly": false
 }

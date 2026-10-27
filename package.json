@@ -16,7 +16,7 @@
     "obsidian-plugin",
     "template"
   ],
-  "author": "IhateTemplate contributors",
+  "author": "hongham",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "latest",

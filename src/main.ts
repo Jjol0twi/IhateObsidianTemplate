@@ -33,7 +33,6 @@ import {
   FIXME_CODE_BLOCK,
   IDEA_CODE_BLOCK,
   createOrOpenDashboardPage,
-  ensureDashboardPage,
   isDashboardPath,
   MarkerDashboardBlock,
   StatusBoardDashboardBlock,
@@ -96,8 +95,6 @@ export default class IhateTemplatePlugin extends Plugin {
     this.registerMarkdownProcessors();
     this.registerFileEvents();
     await this.migrateLegacyTemplateFolder();
-    await this.ensureDefaultTemplates();
-    await ensureDashboardPage(this.app);
 
     if (IS_DEV) {
       new Notice("IhateTemplate loaded in development mode.");
@@ -184,7 +181,31 @@ export default class IhateTemplatePlugin extends Plugin {
 
     this.settings.templateFolder = normalizedNextFolder;
     await this.saveSettings();
-    await this.ensureDefaultTemplates();
+  }
+
+  async createDashboard(): Promise<void> {
+    try {
+      await createOrOpenDashboardPage(this.app);
+    } catch (error) {
+      if (IS_DEV) {
+        console.error("IhateTemplate failed to create the dashboard", error);
+      }
+      new Notice("IhateTemplate could not create the dashboard.");
+    }
+  }
+
+  async installDefaultTemplates(): Promise<void> {
+    try {
+      const created = await this.ensureDefaultTemplates();
+      new Notice(created === 0
+        ? `Default templates are already present in ${this.settings.templateFolder}.`
+        : `Installed ${created} default template file${created === 1 ? "" : "s"} in ${this.settings.templateFolder}.`);
+    } catch (error) {
+      if (IS_DEV) {
+        console.error("IhateTemplate failed to install default templates", error);
+      }
+      new Notice("IhateTemplate could not install the default templates.");
+    }
   }
 
   private registerCommands(): void {
@@ -219,7 +240,15 @@ export default class IhateTemplatePlugin extends Plugin {
       id: "create-dashboard",
       name: "Create dashboard",
       callback: async () => {
-        await createOrOpenDashboardPage(this.app);
+        await this.createDashboard();
+      }
+    });
+
+    this.addCommand({
+      id: "install-default-templates",
+      name: "Install default templates",
+      callback: async () => {
+        await this.installDefaultTemplates();
       }
     });
 
@@ -507,12 +536,12 @@ export default class IhateTemplatePlugin extends Plugin {
     await Promise.all(views.map((view) => view.refresh()));
   }
 
-  private async ensureDefaultTemplates(): Promise<void> {
+  private async ensureDefaultTemplates(): Promise<number> {
     const folderPath = normalizePath(this.settings.templateFolder);
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
 
     if (folder !== null && !(folder instanceof TFolder)) {
-      return;
+      throw new Error(`Template folder path is not a folder: ${folderPath}`);
     }
 
     if (folder === null && !(await this.app.vault.adapter.exists(folderPath))) {
@@ -529,6 +558,7 @@ export default class IhateTemplatePlugin extends Plugin {
     const hasMarkdownTemplate = listed.files.some((path) =>
       path.toLowerCase().endsWith(".md")
     );
+    let created = 0;
 
     for (const template of DEFAULT_TEMPLATES) {
       const { fileName, content } = template;
@@ -536,6 +566,7 @@ export default class IhateTemplatePlugin extends Plugin {
       const templateExists = await this.app.vault.adapter.exists(path);
       if (!hasMarkdownTemplate && !templateExists) {
         await this.app.vault.create(path, content);
+        created += 1;
       }
 
       if (templateExists || !hasMarkdownTemplate) {
@@ -545,9 +576,12 @@ export default class IhateTemplatePlugin extends Plugin {
             rulePath,
             `${JSON.stringify(template.rule, null, 2)}\n`
           );
+          created += 1;
         }
       }
     }
+
+    return created;
   }
 
   private async migrateLegacyTemplateFolder(): Promise<void> {

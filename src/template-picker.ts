@@ -12,7 +12,10 @@ export async function pickTemplate(
 ): Promise<TemplateChoice | null> {
   const choices = await getTemplateChoices(app, templateFolder);
   if (choices.length === 0) {
-    new Notice(`No markdown templates found in ${templateFolder}.`);
+    new Notice(
+      `No markdown templates found in ${templateFolder}. ` +
+      "Run \"Install default templates\" to add the bundled ones."
+    );
     return null;
   }
 

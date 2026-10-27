@@ -15,7 +15,7 @@ It is intentionally not a Templater extension. IhateTemplate does not execute Ja
 - Render `%{{status}}` as the default management value `#status/draft`.
 - Change the `status` frontmatter field later from a command or file context menu.
 - Use custom select prompts with `%{{select:field|Label=value|...}}`.
-- Automatically create an `IhateTemplate Dashboard.md` page on load and open it from the command palette.
+- Create an `IhateTemplate Dashboard.md` page from the command palette or the settings tab. Nothing is written to the vault on load.
 - Protect generated `created` frontmatter values by restoring them on save.
 - Track frontmatter fields that use `%{{nowdatetime}}`, `%{{nowdate}}`, or `%{{nowtime}}` and update them on save.
 - Keep template syntax explicit with `%{{...}}`.
@@ -273,13 +273,13 @@ The status picker used by the change-status command shows user-facing Korean lab
 
 ## Dashboard
 
-IhateTemplate creates this page on load if it does not already exist:
+The dashboard page is not created automatically. Run this command, or press **Create dashboard** in the settings tab, to create it in the vault root:
 
 ```txt
 IhateTemplate Dashboard.md
 ```
 
-You can also run:
+Command:
 
 ```txt
 IhateTemplate: Create dashboard
@@ -367,6 +367,14 @@ See [Code Tabs.md](examples/Code%20Tabs.md) for a complete example. Existing not
 - `Summary Note.md`
 - `Daily Note.md`
 - `Test All Elements.md`
+
+The bundled templates are not written to the vault on load. Install them into the template folder with this command or the **Install default templates** button in the settings tab:
+
+```txt
+IhateTemplate: Install default templates
+```
+
+The command creates the template folder if needed, copies the bundled templates only when the folder has no markdown templates yet, and adds a missing `.ihate.json` rule file next to any bundled template that is already present. Existing files are never overwritten.
 
 The practical templates use only the elements proven in `Test All Elements.md`: title/page, folder-based tags, optional status, optional priority select, string-list fields such as meeting attendees, due date picker, and date/time placeholders. Meeting notes prefix the created file title with the current date.
 
@@ -488,7 +496,9 @@ Code-tab parsing uses [Marked](https://github.com/markedjs/marked), licensed und
 - Meeting Note, Summary Note, and Daily Note templates are listed.
 - Custom `%{{select:...}}` prompts render selected values.
 - `Test All Elements.md` can render all supported placeholders and prompt types.
-- `IhateTemplate Dashboard.md` is created on load when missing, and `IhateTemplate: Create dashboard` opens it when present.
+- The plugin writes nothing to the vault on load: no dashboard page, template folder, or template files appear until a command or settings button is used.
+- `IhateTemplate: Install default templates` creates the template folder and bundled templates when the folder has no markdown templates, adds missing rule files, and reports what it created.
+- `IhateTemplate: Create dashboard` creates `IhateTemplate Dashboard.md` when missing and opens it when present.
 - `ihate-template-health` and `ihate-template-query` blocks update after metadata changes.
 - Query blocks filter by status, tag, and folder, then honor sort, order, limit, and layout.
 - Code tabs show only the selected example in full, without a height limit or internal vertical scrolling.

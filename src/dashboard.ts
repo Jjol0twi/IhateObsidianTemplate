@@ -32,18 +32,6 @@ export function getMarkersForFile(file: TFile, content: string): MarkerItem[] {
   ).sort((left, right) => left.line - right.line);
 }
 
-export async function ensureDashboardPage(app: App): Promise<void> {
-  if (await app.vault.adapter.exists(DASHBOARD_PATH)) {
-    const existing = app.vault.getAbstractFileByPath(DASHBOARD_PATH);
-    if (existing instanceof TFile) {
-      await migrateDashboardPageIfLegacy(app, existing);
-    }
-    return;
-  }
-
-  await app.vault.create(DASHBOARD_PATH, buildDashboardContent(app));
-}
-
 export async function createOrOpenDashboardPage(app: App): Promise<void> {
   if (await app.vault.adapter.exists(DASHBOARD_PATH)) {
     const existing = app.vault.getAbstractFileByPath(DASHBOARD_PATH);

@@ -114,5 +114,39 @@ export class IhateTemplateSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl).setName("Setup").setHeading();
+
+    new Setting(containerEl)
+      .setName("Default templates")
+      .setDesc("Copy the bundled templates and rule files into the template folder. Existing files are kept.")
+      .addButton((button) =>
+        button
+          .setButtonText("Install default templates")
+          .onClick(async () => {
+            button.setDisabled(true);
+            try {
+              await this.plugin.installDefaultTemplates();
+            } finally {
+              button.setDisabled(false);
+            }
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Dashboard")
+      .setDesc("Create IhateTemplate Dashboard.md in the vault root, or open it if it already exists.")
+      .addButton((button) =>
+        button
+          .setButtonText("Create dashboard")
+          .onClick(async () => {
+            button.setDisabled(true);
+            try {
+              await this.plugin.createDashboard();
+            } finally {
+              button.setDisabled(false);
+            }
+          })
+      );
   }
 }

@@ -15,7 +15,7 @@ IhateTemplate은 단순하고 명시적인 markdown 템플릿으로 Obsidian 문
 - `%{{status}}`는 기본 관리값 `#status/draft`로 치환합니다.
 - 나중에 명령 또는 파일 오른쪽 클릭 메뉴로 `status` frontmatter 필드를 변경할 수 있습니다.
 - `%{{select:field|Label=value|...}}` 문법으로 커스텀 선택창을 만들 수 있습니다.
-- 플러그인 로드 시 `IhateTemplate Dashboard.md` 페이지를 자동 생성하고, Command Palette에서 열 수 있습니다.
+- Command Palette 또는 설정 탭에서 `IhateTemplate Dashboard.md` 페이지를 만듭니다. 로드 시에는 vault에 아무것도 쓰지 않습니다.
 - 생성된 `created` frontmatter 값을 저장 시 원래 값으로 복구합니다.
 - `%{{nowdatetime}}`, `%{{nowdate}}`, `%{{nowtime}}`을 사용한 frontmatter 필드를 저장 시 갱신합니다.
 - `%{{...}}` 형태의 명시적인 템플릿 문법만 사용합니다.
@@ -273,13 +273,13 @@ markdown에서는 `priority: "%{{field:priority}}"`, `due: "%{{field:due}}"`처�
 
 ## 대시보드
 
-IhateTemplate은 로드 시 아래 페이지가 없으면 자동으로 생성합니다.
+대시보드 페이지는 자동으로 만들지 않습니다. 아래 명령을 실행하거나 설정 탭의 **Create dashboard** 버튼을 누르면 vault 루트에 생성됩니다.
 
 ```txt
 IhateTemplate Dashboard.md
 ```
 
-Command Palette에서도 실행할 수 있습니다.
+명령:
 
 ```txt
 IhateTemplate: Create dashboard
@@ -367,6 +367,14 @@ print("Hello")
 - `Summary Note.md`
 - `Daily Note.md`
 - `Test All Elements.md`
+
+번들된 템플릿은 로드 시 vault에 쓰지 않습니다. 아래 명령 또는 설정 탭의 **Install default templates** 버튼으로 템플릿 폴더에 설치합니다.
+
+```txt
+IhateTemplate: Install default templates
+```
+
+이 명령은 필요하면 템플릿 폴더를 만들고, 폴더에 markdown 템플릿이 하나도 없을 때만 번들 템플릿을 복사하며, 이미 있는 번들 템플릿 옆에 `.ihate.json` 규칙 파일이 없으면 추가합니다. 기존 파일은 덮어쓰지 않습니다.
 
 실사용 템플릿은 `Test All Elements.md`에서 검증한 요소만 사용합니다: title/page, 폴더 기반 tags, 선택적 status, 선택적 priority select, meeting attendees 같은 문자열 목록 필드, due 날짜 선택, date/time placeholder. 미팅 노트는 생성되는 파일 제목 앞에 현재 날짜를 붙입니다.
 
@@ -488,7 +496,9 @@ MIT
 - Meeting Note, Summary Note, Daily Note 템플릿이 목록에 표시됩니다.
 - 커스텀 `%{{select:...}}` prompt가 선택 값을 치환합니다.
 - `Test All Elements.md`로 모든 지원 placeholder와 prompt 타입을 검증할 수 있습니다.
-- `IhateTemplate Dashboard.md`는 없으면 로드 시 생성되고, `IhateTemplate: Create dashboard`는 이미 있는 대시보드를 엽니다.
+- 플러그인은 로드 시 vault에 아무것도 쓰지 않습니다. 명령이나 설정 버튼을 쓰기 전에는 대시보드, 템플릿 폴더, 템플릿 파일이 생기지 않습니다.
+- `IhateTemplate: Install default templates`는 폴더에 markdown 템플릿이 없을 때 템플릿 폴더와 번들 템플릿을 만들고, 빠진 규칙 파일을 추가하며, 만든 항목 수를 알려줍니다.
+- `IhateTemplate: Create dashboard`는 `IhateTemplate Dashboard.md`가 없으면 만들고 있으면 엽니다.
 - `ihate-template-health`, `ihate-template-query` block이 metadata 변경 뒤 갱신됩니다.
 - Query block이 status, tag, folder를 필터링하고 sort, order, limit, layout을 적용합니다.
 - 코드 탭은 선택한 예제만 전체 길이로 표시하며 높이 제한과 내부 세로 스크롤은 없습니다.

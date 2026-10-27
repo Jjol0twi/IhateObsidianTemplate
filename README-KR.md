@@ -4,28 +4,26 @@ IhateTemplate은 단순하고 명시적인 markdown 템플릿으로 Obsidian 문
 
 이 플러그인은 Templater 확장이 아닙니다. JavaScript, Templater 블록, Mustache 문법을 실행하지 않습니다. 예측 가능한 문서 생성, 명시적인 템플릿 규칙, 일관된 속성과 태그, 다시 문서를 찾기 위한 작은 workflow view에 집중합니다.
 
+English documentation: [README.md](README.md)
+
 ## 기능
 
-- 선택한 markdown 템플릿으로 새 문서를 만듭니다.
-- 선택한 템플릿을 현재 에디터에 삽입합니다.
-- 기존 markdown 파일이 완전히 비어 있을 때만 템플릿을 적용합니다.
-- 파일 탐색기 오른쪽 클릭 메뉴를 제공합니다.
-- 에디터 오른쪽 클릭 삽입 메뉴를 제공합니다.
-- 생성/적용된 문서의 `%{{page}}`를 추적하고 파일명이 바뀌면 갱신합니다.
-- `%{{status}}`는 기본 관리값 `#status/draft`로 치환합니다.
-- 나중에 명령 또는 파일 오른쪽 클릭 메뉴로 `status` frontmatter 필드를 변경할 수 있습니다.
-- `%{{select:field|Label=value|...}}` 문법으로 커스텀 선택창을 만들 수 있습니다.
-- Command Palette 또는 설정 탭에서 `IhateTemplate Dashboard.md` 페이지를 만듭니다. 로드 시에는 vault에 아무것도 쓰지 않습니다.
-- 생성된 `created` frontmatter 값을 저장 시 원래 값으로 복구합니다.
-- `%{{nowdatetime}}`, `%{{nowdate}}`, `%{{nowtime}}`을 사용한 frontmatter 필드를 저장 시 갱신합니다.
-- `%{{...}}` 형태의 명시적인 템플릿 문법만 사용합니다.
-- 폴더 기반 태그를 vault에서 이미 사용하는 대표 표기와 맞춥니다.
-- 검색 가능한 추천창으로 태그를 편집하고 유사 표기와 중복을 막습니다.
-- 필수 속성, 잘못된 status, 잘못 저장된 tags, 규칙에 선언된 날짜 형식을 점검합니다.
-- 현재 문서의 목차, 속성, 태그, marker, 상태 점검을 오른쪽 사이드 패널에 표시합니다.
-- 템플릿 질문과 검증 규칙을 선택적 `.ihate.json` sidecar 파일로 분리합니다.
-- 실행 코드가 아닌 안전한 YAML filter로 실시간 dashboard block을 조립합니다.
-- 여러 언어의 코드 예제를 하나의 탭형 코드 블록으로 표시합니다.
+- **명시적인 템플릿**: `%{{...}}` placeholder만 렌더링합니다. JavaScript, Templater 블록, Mustache 문법은 실행하지 않습니다.
+- **문서 생성**: Command Palette나 오른쪽 클릭 메뉴에서 템플릿으로 새 문서를 만들고, 에디터에 삽입하고, 빈 파일에 적용합니다.
+- **추적되는 속성**: 생성된 `created` 값은 저장 시 복구되고, `%{{now...}}` 필드는 저장 시 갱신되며, `%{{page}}`는 파일명 변경을 따라갑니다.
+- **질문과 규칙**: select, multi-select, date, string-list 질문을 inline 또는 `.ihate.json` 규칙 파일로 선언하고, 필수 속성과 날짜 속성도 함께 둡니다.
+- **상태와 Smart Tags**: 기본 상태 집합과, vault에서 이미 쓰는 표기를 재사용하며 중복을 막는 태그 편집기를 제공합니다.
+- **노트 상태 점검**: 빠진 속성, 잘못된 status, 잘못 저장된 tags, 잘못된 날짜를 찾고, 수정 버튼을 누른 항목만 바꿉니다.
+- **Workspace 패널**: 현재 문서의 목차, 속성, 태그, TODO/FIXME/IDEA marker, 상태 점검 요약을 오른쪽 사이드바에 보여줍니다.
+- **대시보드**: 실행 코드 없이 status, marker, health, YAML query block이 실시간으로 갱신됩니다.
+- **코드 탭과 표 자동 맞춤**: 여러 언어 예제를 탭형 코드 블록으로 보여주고, 내용이 넘치는 표만 본문 폭 밖으로 확장합니다.
+
+## 빠른 시작
+
+1. 플러그인을 설치합니다. 커뮤니티 디렉터리에 등록되기 전에는 최신 [release](https://github.com/Jjol0twi/IhateObsidianTemplate/releases)의 `main.js`, `manifest.json`, `styles.css`를 `<vault>/.obsidian/plugins/ihate-template/`에 복사하고 켭니다. 플러그인은 로드 시 vault에 아무것도 쓰지 않습니다.
+2. `IhateTemplate: Install default templates` 명령 또는 설정 탭의 버튼으로 번들 템플릿을 `_templates` 폴더에 설치합니다. 대신 `Template folder` 설정을 직접 만든 템플릿 폴더로 지정해도 됩니다.
+3. `IhateTemplate: Create note from template`을 실행해 템플릿을 고르고 제목을 입력합니다.
+4. 필요하면 `IhateTemplate: Create dashboard`로 status와 marker 현황을, `IhateTemplate: Open workspace panel`로 현재 문서의 목차, 속성, 상태 점검을 봅니다.
 
 ## 사용법
 
@@ -81,13 +79,7 @@ Insert IhateTemplate
 Apply IhateTemplate if empty
 ```
 
-아래 조건일 때만 템플릿을 적용합니다.
-
-```ts
-content.trim().length === 0
-```
-
-제목은 묻지 않습니다. 기존 파일명이 `%{{title}}`과 `%{{page}}` 값으로 사용됩니다. 내용이 있는 파일은 덮어쓰지 않습니다.
+파일에 공백 외에 아무 내용도 없을 때만 템플릿을 적용합니다. 제목은 묻지 않습니다. 기존 파일명이 `%{{title}}`과 `%{{page}}` 값으로 사용됩니다. 내용이 있는 파일은 덮어쓰지 않습니다.
 
 ### 나중에 상태 변경
 
@@ -378,7 +370,7 @@ IhateTemplate: Install default templates
 
 실사용 템플릿은 `Test All Elements.md`에서 검증한 요소만 사용합니다: title/page, 폴더 기반 tags, 선택적 status, 선택적 priority select, meeting attendees 같은 문자열 목록 필드, due 날짜 선택, date/time placeholder. 미팅 노트는 생성되는 파일 제목 앞에 현재 날짜를 붙입니다.
 
-## 예시 템플릿
+### 예시 템플릿
 
 ```md
 ---
@@ -402,120 +394,14 @@ source: []
 ## 개발
 
 ```bash
-cd ihate-template
 npm install
 npm run dev
 ```
 
-개발 빌드는 Obsidian이 로드할 파일을 아래 위치에 씁니다.
-
-```txt
-../.obsidian/plugins/ihate-template/
-```
-
-빌드 후 Obsidian에서 플러그인을 reload해야 합니다.
-
-## 소스 구조
-
-- `main.ts`: plugin lifecycle, command 등록, menu 등록, vault event 처리
-- `default-templates.ts`: bundled default template 파일의 typed registry
-- `note-creator.ts`: 새 문서 생성, 삽입, 빈 파일 적용의 상위 workflow
-- `template-engine.ts`: 순수 placeholder 렌더링과 frontmatter 추출
-- `template-renderer.ts`: custom select 같은 interactive render prompt 처리
-- `template-rules.ts`: 검증된 `.ihate.json` 규칙과 규칙 기반 prompt 처리
-- `template-picker.ts`, `title-modal.ts`, `status.ts`: modal UI 경계
-- `template-tracker.ts`: `updated`, 보호된 `created`, `%{{page}}` rename 갱신 추적
-- `smart-tags.ts`: vault tag 색인, 대표 표기 결정, tag 편집기
-- `note-health.ts`: 상태 점검, 명시적 수정, health dashboard block
-- `workspace-view.ts`: 현재 문서의 오른쪽 사이드 패널
-- `vault-paths.ts`: Obsidian vault path와 파일 생성 helper
-- `dashboard.ts`: 기본 dashboard 생성
-- `dashboard-query.ts`: 검증된 실시간 dashboard query
-- `code-tabs-parser.ts`, `code-tabs.ts`: 코드 블록 파싱과 선택한 예제만 표시하는 탭 렌더러
-- `templates/*.md`, `templates/*.ihate.json`: bundled template 본문과 규칙의 source of truth
-
-## 추가하기 좋은 기능
-
-- 기본 status label/value를 수정하는 settings UI
-- drag-and-drop으로 status를 바꿀 수 있는 custom review board view
-- 템플릿 규칙 변경 시 속성 migration 미리보기
-- 추가 tag alias를 정의하는 settings UI
-- `%{{folder}}`, `%{{filepath}}`, `%{{slug}}`, `%{{uuid}}` 같은 안전한 built-in 함수
-
-## 릴리즈 빌드
-
-```bash
-npm run version:set -- 0.3.0
-npm test
-npm run typecheck
-npm run build
-npm run release:check
-```
-
-기본 빌드는 개발 vault의 플러그인 폴더에 씁니다. `IHATE_OUT_DIR=.`를 주면 저장소 루트에 `main.js`를 만들며(`.gitignore` 대상), `release:check`도 같은 변수를 읽습니다.
-
-`version:set`은 기존 `versions.json` 기록을 보존하면서 `package.json`, `package-lock.json`, `manifest.json`, `versions.json`의 버전을 함께 변경합니다.
-릴리즈 모드는 `main.js`를 minify하고 개발용 Notice, verbose log, health check command를 제외합니다.
-`release:check`는 `package.json`, `manifest.json`, `versions.json`의 버전 일치 여부와 release bundle에 개발용 console artifact가 남았는지 확인합니다.
-
-GitHub release에 올릴 파일은 아래 세 개입니다.
-
-- `main.js`
-- `manifest.json`
-- `styles.css`
-
-`.github/workflows/release.yml`은 버전과 같은 이름의 tag를 push하면 테스트, 타입체크, 릴리즈 빌드, `release:check`를 거쳐 위 세 파일을 첨부한 draft release를 만듭니다. GitHub에서 draft를 확인하고 publish하면 됩니다.
-
-```bash
-git tag 0.3.0 && git push origin 0.3.0
-```
-
-수동 설치 시에는 위 파일을 아래 폴더에 복사합니다.
-
-```txt
-Vault/.obsidian/plugins/ihate-template/
-```
-
-Obsidian 커뮤니티 플러그인으로 공식 제출하려면 repository root에 `README.md`, `LICENSE`, `manifest.json`, `versions.json`이 필요합니다. release tag는 `manifest.json`의 `version`과 같아야 합니다.
+`npm test`는 단위 테스트를, `npm run typecheck`는 TypeScript 컴파일러를 실행합니다. 개발 vault 구성, 소스 구조, 릴리즈 절차, 수동 테스트 체크리스트는 [DEVELOPMENT-KR.md](DEVELOPMENT-KR.md)를 보세요.
 
 ## 라이선스
 
 MIT
 
 코드 탭 파싱에는 MIT 라이선스의 [Marked](https://github.com/markedjs/marked)를 사용합니다. 구문 강조는 Obsidian이 제공하는 Prism 인스턴스를 사용합니다.
-
-## 수동 테스트 체크리스트
-
-- 플러그인이 로드되고 settings tab이 표시됩니다.
-- 템플릿 폴더의 markdown 파일 목록이 표시됩니다.
-- 제목 modal을 취소하면 파일을 만들지 않습니다.
-- 빈 제목은 `New Page.md`로 생성됩니다.
-- vault root와 current folder에 새 문서를 만들 수 있습니다.
-- 중복 제목에는 숫자 suffix가 붙습니다.
-- 파일 탐색기 오른쪽 클릭으로 새 문서를 만들 수 있습니다.
-- 에디터 오른쪽 클릭으로 템플릿을 삽입할 수 있습니다.
-- 빈 markdown 파일에 제목 질문 없이 템플릿을 적용할 수 있습니다.
-- 내용이 있는 markdown 파일은 빈 파일 적용 기능으로 덮어쓰지 않습니다.
-- 명령 팔레트 또는 파일 오른쪽 클릭 메뉴로 status를 나중에 변경할 수 있습니다.
-- Smart Tags가 기존 태그를 추천하고 같은 identity의 중복 태그를 막습니다.
-- Note Health가 노트를 자동 변경하지 않고 status, tags, date, 필수 속성 문제를 찾습니다.
-- Workspace 패널이 현재 문서를 따라가고 목차와 marker의 원문 줄을 엽니다.
-- `.ihate.json` 규칙이 `%{{field:...}}` 값을 렌더링하고 잘못된 규칙은 안전하게 생성을 중단합니다.
-- Meeting Note, Summary Note, Daily Note 템플릿이 목록에 표시됩니다.
-- 커스텀 `%{{select:...}}` prompt가 선택 값을 치환합니다.
-- `Test All Elements.md`로 모든 지원 placeholder와 prompt 타입을 검증할 수 있습니다.
-- 플러그인은 로드 시 vault에 아무것도 쓰지 않습니다. 명령이나 설정 버튼을 쓰기 전에는 대시보드, 템플릿 폴더, 템플릿 파일이 생기지 않습니다.
-- `IhateTemplate: Install default templates`는 폴더에 markdown 템플릿이 없을 때 템플릿 폴더와 번들 템플릿을 만들고, 빠진 규칙 파일을 추가하며, 만든 항목 수를 알려줍니다.
-- `IhateTemplate: Create dashboard`는 `IhateTemplate Dashboard.md`가 없으면 만들고 있으면 엽니다.
-- `ihate-template-health`, `ihate-template-query` block이 metadata 변경 뒤 갱신됩니다.
-- Query block이 status, tag, folder를 필터링하고 sort, order, limit, layout을 적용합니다.
-- 코드 탭은 선택한 예제만 전체 길이로 표시하며 높이 제한과 내부 세로 스크롤은 없습니다.
-- 읽기 보기와 Live Preview에서 키보드 탭 전환, 현재 탭 복사, 알 수 없는 언어, HTML 원문 표시가 동작합니다.
-- Auto-fit tables는 기본 켜짐입니다. 본문에 들어가는 표는 본문 안에 유지되고 너비가 부족한 표만 확장하며, 일반 본문 폭은 유지합니다. 창 너비를 바꿔 긴 글, URL, 인라인 코드가 가로 스크롤 없이 줄바꿈하는지 확인합니다. 끄거나 플러그인을 해제하면 원래 배치로 돌아가는지 `examples/Wide Tables.md`로 확인합니다.
-- `%{{title}}`, `%{{page}}`, `%{{status}}`, `%{{datetime}}`, `%{{date}}`, `%{{time}}`이 치환됩니다.
-- Prompt placeholder가 치환됩니다: `%{{multi:...}}`, `%{{datepick:...}}`, `%{{property:...}}`.
-- 추적된 문서의 파일명을 바꾸면 `%{{page}}`로 생성된 제목이 갱신됩니다.
-- 추적된 문서의 생성된 `created` 값은 저장 시 복구됩니다.
-- 생성/적용된 문서의 frontmatter `updated: "%{{nowdatetime}}"`이 저장 시 갱신됩니다.
-- 템플릿 파일 자체는 tracker가 수정하지 않습니다.
-- release build에는 개발용 Notice, log, command가 노출되지 않습니다.
